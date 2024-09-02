@@ -1,0 +1,128 @@
+import { TestContext } from '@salesforce/core/testSetup';
+// import sinon from 'sinon';
+import { expect } from 'chai';
+import { stubMethod } from '@salesforce/ts-sinon';
+import { Org } from '@salesforce/core';
+import { stubSfCommandUx } from '@salesforce/sf-plugins-core';
+import { ListMetadataQuery } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
+import DataDictionaryGenerate from '../../../src/commands/data-dictionary/generate.js';
+// import { DictionaryBuilder } from '../../../src/modules/dictionaryBuilder.js';
+// import * as projectModule from '../../../src/modules/project.js';
+// import {getSourceApiVersion} from '../../../src/modules/project.js';
+
+describe('data-dictionary generate', () => {
+  const $$ = new TestContext();
+  let sfCommandStubs: ReturnType<typeof stubSfCommandUx>;
+  // let getSourceApiVersionStub: sinon.SinonStub;
+
+  // let sandbox: sinon.SinonSandbox;
+  let getOrgStub: sinon.SinonStub;
+  // let metadataListStub: sinon.SinonStub;
+  // let getConnectionStub: sinon.SinonStub;
+
+  // let mockConnection: sinon.SinonStubbedInstance<Connection>;
+
+  beforeEach(() => {
+    sfCommandStubs = stubSfCommandUx($$.SANDBOX);
+
+    getOrgStub = stubMethod($$.SANDBOX, Org, 'create').resolves({
+      getConnection: () => ({
+        metadata: {
+          list: async (queries: ListMetadataQuery) => {
+            if (queries.type === 'CustomObject') {
+              return [
+                {
+                  createdById: '0051I000000XXXX',
+                  createdByName: 'John Doe',
+                  createdDate: '2023-10-01T12:00:00Z',
+                  fileName: 'exampleFile.xml',
+                  fullName: 'customObject1__c',
+                  id: '00D1I000000XXXX',
+                  lastModifiedById: '0051I000000YYYY',
+                  lastModifiedByName: 'Jane Smith',
+                  lastModifiedDate: '2023-10-02T12:00:00Z',
+                  manageableState: 'managed',
+                  namespacePrefix: 'example',
+                  type: 'CustomObject',
+                },
+                {
+                  createdById: '0051I000000XXXX',
+                  createdByName: 'John Doe',
+                  createdDate: '2023-10-01T12:00:00Z',
+                  fileName: 'exampleFile.xml',
+                  fullName: 'customObject2__c',
+                  id: '00D1I000000XXXX',
+                  lastModifiedById: '0051I000000YYYY',
+                  lastModifiedByName: 'Jane Smith',
+                  lastModifiedDate: '2023-10-02T12:00:00Z',
+                  type: 'CustomObject',
+                },
+              ];
+            } else {
+              return [];
+            }
+          },
+        },
+        // Mock any other methods or properties you need
+        getAuthInfoFields: () => ({}),
+        getUsername: () => '',
+      }),
+    });
+
+    // // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+    // metadataListStub = stubMethod($$.SANDBOX, getOrgStub().getConnection().metadata, 'list').resolves([
+    //   {
+    //     createdById: '0051I000000XXXX',
+    //     createdByName: 'John Doe',
+    //     createdDate: '2023-10-01T12:00:00Z',
+    //     fileName: 'exampleFile.xml',
+    //     fullName: 'Example File',
+    //     id: '00D1I000000XXXX',
+    //     lastModifiedById: '0051I000000YYYY',
+    //     lastModifiedByName: 'Jane Smith',
+    //     lastModifiedDate: '2023-10-02T12:00:00Z',
+    //     manageableState: 'managed',
+    //     namespacePrefix: 'example',
+    //     type: 'CustomObject',
+    //   },
+    // ]);
+
+    // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+    // getConnectionStub = stubMethod($$.SANDBOX, Org.prototype, 'getConnection').returns({
+    //   metadata: {
+    //     list: async () => [],
+    //   },
+    //   // Mock any other methods or properties you need
+    //   getAuthInfoFields: () => ({}),
+    //   getUsername: () => '',
+    // });
+
+    // sandbox = sinon.createSandbox();
+    //
+    // mockConnection = sandbox.createStubInstance(Connection);
+    // mockOrg = sandbox.createStubInstance(Org);
+    // mockOrg.getConnection.returns(mockConnection);
+    //
+    // sandbox.stub(Org, 'create').resolves(mockOrg);
+    // // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    // // sandbox.stub(getSourceApiVersion).resolves('50.0');
+    // sandbox.stub(DictionaryBuilder.prototype, 'build').resolves({ success: true });
+  });
+
+  afterEach(() => {
+    $$.restore();
+  });
+
+  it('runs dictionary generation', async () => {
+    await DataDictionaryGenerate.run(['--api-version', '57.0']);
+    const output = sfCommandStubs.log
+      .getCalls()
+      .flatMap((c) => c.args)
+      .join('\n');
+    // expect(getSourceApiVersionStub.calledOnce).to.equal(true);
+    expect(getOrgStub.called).to.equal(true);
+    // expect(metadataListStub.calledOnce).to.equal(true);
+    expect(output).to.include('result: 1');
+    // how to do some assertions?
+  });
+});
