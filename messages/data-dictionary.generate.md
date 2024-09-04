@@ -41,3 +41,11 @@ The -l, --include-managed-prefixes flag, with a default value of null, allows yo
 # flags.sobjects.summary
 
 The -s, --sobjects flag allows you to specify particular Salesforce objects (comma separated) to include in the operation, overriding the --include-all-managed flag if use.
+
+# flags.dir.summary
+
+Directory for saving outputs.
+
+# flags.start-object.summary
+
+Specifies the sObject to begin crawling through its relationships.

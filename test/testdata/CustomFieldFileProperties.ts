@@ -1,0 +1,28 @@
+export const CustomFieldFileProperties = [
+  {
+    createdById: '005Sa000000yMQfIAM',
+    createdByName: 'admin',
+    createdDate: '2024-06-12T13:03:47.000Z',
+    fileName: 'objects/pmdm__ProgramCohort__c.object',
+    fullName: 'pmdm__ProgramCohort__c.Group_Number_forPMM__c',
+    id: '00NSa000001M5wXMAS',
+    lastModifiedById: '005Sa000000yMQfIAM',
+    lastModifiedByName: 'admin',
+    lastModifiedDate: '2024-06-12T13:03:47.000Z',
+    manageableState: 'unmanaged',
+    type: 'CustomField',
+  },
+  {
+    createdById: '005Sa000000yMQfIAM',
+    createdByName: 'admin',
+    createdDate: '2024-06-12T13:03:47.000Z',
+    fileName: 'objects/Quote.object',
+    fullName: 'Quote.test__c',
+    id: '00NSa000001M5wXMAS',
+    lastModifiedById: '005Sa000000yMQfIAM',
+    lastModifiedByName: 'admin',
+    lastModifiedDate: '2024-06-12T13:03:47.000Z',
+    manageableState: 'unmanaged',
+    type: 'CustomField',
+  },
+];

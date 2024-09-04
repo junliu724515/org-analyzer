@@ -6,6 +6,9 @@ import { Org } from '@salesforce/core';
 import { stubSfCommandUx } from '@salesforce/sf-plugins-core';
 import { ListMetadataQuery } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 import DataDictionaryGenerate from '../../../src/commands/data-dictionary/generate.js';
+import { DescribeSobjectResult } from '../../testdata/DescribeSobjectResult.js';
+import { CustomObjectFileProperties } from '../../testdata/CustomObjectFileProperties.js';
+import { CustomFieldFileProperties } from '../../testdata/CustomFieldFileProperties.js';
 // import { DictionaryBuilder } from '../../../src/modules/dictionaryBuilder.js';
 // import * as projectModule from '../../../src/modules/project.js';
 // import {getSourceApiVersion} from '../../../src/modules/project.js';
@@ -30,38 +33,17 @@ describe('data-dictionary generate', () => {
         metadata: {
           list: async (queries: ListMetadataQuery) => {
             if (queries.type === 'CustomObject') {
-              return [
-                {
-                  createdById: '0051I000000XXXX',
-                  createdByName: 'John Doe',
-                  createdDate: '2023-10-01T12:00:00Z',
-                  fileName: 'exampleFile.xml',
-                  fullName: 'customObject1__c',
-                  id: '00D1I000000XXXX',
-                  lastModifiedById: '0051I000000YYYY',
-                  lastModifiedByName: 'Jane Smith',
-                  lastModifiedDate: '2023-10-02T12:00:00Z',
-                  manageableState: 'managed',
-                  namespacePrefix: 'example',
-                  type: 'CustomObject',
-                },
-                {
-                  createdById: '0051I000000XXXX',
-                  createdByName: 'John Doe',
-                  createdDate: '2023-10-01T12:00:00Z',
-                  fileName: 'exampleFile.xml',
-                  fullName: 'customObject2__c',
-                  id: '00D1I000000XXXX',
-                  lastModifiedById: '0051I000000YYYY',
-                  lastModifiedByName: 'Jane Smith',
-                  lastModifiedDate: '2023-10-02T12:00:00Z',
-                  type: 'CustomObject',
-                },
-              ];
+              return CustomObjectFileProperties;
             } else {
-              return [];
+              return CustomFieldFileProperties;
             }
           },
+        },
+        describe: async (sobject: string) => {
+          if (sobject) {
+            return DescribeSobjectResult;
+          }
+          return {};
         },
         // Mock any other methods or properties you need
         getAuthInfoFields: () => ({}),
@@ -114,15 +96,44 @@ describe('data-dictionary generate', () => {
   });
 
   it('runs dictionary generation', async () => {
-    await DataDictionaryGenerate.run(['--api-version', '57.0']);
+    const result = await DataDictionaryGenerate.run(['--api-version', '61.0']);
     const output = sfCommandStubs.log
       .getCalls()
       .flatMap((c) => c.args)
       .join('\n');
     // expect(getSourceApiVersionStub.calledOnce).to.equal(true);
     expect(getOrgStub.called).to.equal(true);
-    // expect(metadataListStub.calledOnce).to.equal(true);
-    expect(output).to.include('result: 1');
+    // expect(result.objects).not.equal(undefined);
+    expect(result.objects?.size).to.equal(3);
+    expect(output).to.include('result: 3');
+    // how to do some assertions?
+  });
+
+  it('runs dictionary generation with specifying objects', async () => {
+    const result = await DataDictionaryGenerate.run(['--api-version', '61.0', '-s', 'Account,Enrolment__c']);
+    const output = sfCommandStubs.log
+      .getCalls()
+      .flatMap((c) => c.args)
+      .join('\n');
+    // expect(getSourceApiVersionStub.calledOnce).to.equal(true);
+    expect(getOrgStub.called).to.equal(true);
+    // expect(result.objects).not.equal(undefined);
+    expect(result.objects?.size).to.equal(2);
+    expect(output).to.include('result: 2');
+    // how to do some assertions?
+  });
+
+  it('runs dictionary generation with relationship crawling', async () => {
+    const result = await DataDictionaryGenerate.run(['--api-version', '61.0', '--start-object', 'Enrolment__c']);
+    const output = sfCommandStubs.log
+      .getCalls()
+      .flatMap((c) => c.args)
+      .join('\n');
+    // expect(getSourceApiVersionStub.calledOnce).to.equal(true);
+    expect(getOrgStub.called).to.equal(true);
+    // expect(result.objects).not.equal(undefined);
+    expect(result.objects?.size).to.equal(7);
+    expect(output).to.include('result: 7');
     // how to do some assertions?
   });
 });

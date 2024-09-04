@@ -42,6 +42,13 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       summary: messages.getMessage('flags.sobjects.summary'),
       char: 's',
     }),
+    dir: Flags.directory({
+      summary: messages.getMessage('flags.dir.summary'),
+      char: 'd',
+    }),
+    'start-object': Flags.string({
+      summary: messages.getMessage('flags.start-object.summary'),
+    }),
   };
 
   public async run(): Promise<DataDictionaryGenerateResult> {
@@ -56,6 +63,8 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       excludeManagedPrefixes: flags['exclude-managed-prefixes'],
       includeManagedPrefixes: flags['include-managed-prefixes'],
       sobjects: flags.sobjects,
+      dir: flags.dir,
+      startObject: flags['start-object'],
     };
 
     const result = await new DictionaryBuilder(dictionaryBuilderOptions).build();
