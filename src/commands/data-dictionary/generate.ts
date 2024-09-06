@@ -2,7 +2,7 @@ import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
 import { Messages, Connection, Org } from '@salesforce/core';
 import { Optional } from '@salesforce/ts-types';
 import { getSourceApiVersion } from '../../modules/project.js';
-import { DictionaryBuilder, DictionaryBuilderOptions } from '../../modules/dictionaryBuilder.js';
+import { DictionaryGenerator, DictionaryBuilderOptions } from '../../modules/dictionaryGenerator.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('org-analyzer', 'data-dictionary.generate');
@@ -67,7 +67,7 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       startObject: flags['start-object'],
     };
 
-    const result = await new DictionaryBuilder(dictionaryBuilderOptions).build();
+    const result = await new DictionaryGenerator(dictionaryBuilderOptions).build();
 
     // this.log(`result: ${result}`);
 

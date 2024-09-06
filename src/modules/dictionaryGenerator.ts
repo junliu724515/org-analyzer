@@ -2,9 +2,9 @@
 import { Connection } from '@salesforce/core';
 import CrawlObjects from './crawlObjectRelationships.js';
 import { getStandardObjects } from './helper.js';
+import ExcelBuilder, { ExcelBuilderOptions } from './excelBuilder.js';
+import { getName } from './project.js';
 // import ExcelJS from 'exceljs';
-// import { DescribeSObjectResult } from '@jsforce/jsforce-node/lib/types/common.js';
-// import { CustomObject } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 
 export type DictionaryBuilderOptions = {
   includeManaged: boolean;
@@ -21,7 +21,7 @@ export type DictionaryBuilderResult = {
   objects?: Set<string>;
 };
 
-export class DictionaryBuilder {
+export class DictionaryGenerator {
   private options: DictionaryBuilderOptions;
 
   public constructor(options: DictionaryBuilderOptions) {
@@ -157,36 +157,40 @@ export class DictionaryBuilder {
   // }
 
   public async build(): Promise<DictionaryBuilderResult> {
-    const objects = await this.identifyObjects();
-
-    // const describePromises = [];
-    // const metadataPromises = [];
-    // for (const object of objects) {
-    //   describePromises.push(this.options.conn.describe(object));
-    //   metadataPromises.push(this.options.conn.metadata.read('CustomObject', object));
-    // }
-    // const describeSObjectResults = await Promise.all(describePromises);
-    // const metadataResults = await Promise.all(metadataPromises);
-
-    // Create maps for storing results
-    // const describeMap = new Map<string, DescribeSObjectResult>(); // Map with `name` as key
-    // const metadataMap = new Map<string, CustomObject>(); // Map with `fullName` as key
-
-    // for (const describeSObjectResult of describeSObjectResults) {
-    //    describeMap.set(describeSObjectResult.name, describeSObjectResult);
-    // }
-    //
-    // for (const metadataResult of metadataResults) {
-    //   if (metadataResult.fullName) {
-    //     metadataMap.set(metadataResult.fullName, metadataResult);
-    //   }
-    // }
+    const objectSet = await this.identifyObjects();
+    const projectName = (await getName()) as string;
 
     // await this.generateExcel(describeMap, metadataMap);
 
+    const excelBuilderOptions: ExcelBuilderOptions = {
+      debug: false,
+      conn: this.options.conn,
+      columns: {
+        ReadOnly: 5,
+        Mandatory: 3,
+        Name: 25,
+        Description: 90,
+        Helptext: 90,
+        APIName: 25,
+        Type: 27,
+        Values: 45,
+      },
+      objects: Array.from(objectSet),
+      hideTechFields: false,
+      techFieldPrefix: 'TECH_',
+      outputTime: true,
+      output: this.options.dir ? this.options.dir : '.',
+      projectName,
+      generateCharts: false,
+      lucidchart: false,
+    };
+
+    const excelBuilder = new ExcelBuilder(excelBuilderOptions);
+    const result = await excelBuilder.generate();
+
     return {
-      success: true,
-      objects,
+      success: result,
+      objects: objectSet,
     };
   }
 }

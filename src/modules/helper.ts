@@ -1,4 +1,5 @@
 import { Connection } from '@salesforce/core';
+import { CustomField } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 
 /**
  * Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata .
@@ -36,4 +37,19 @@ export async function getStandardObjects(conn: Connection): Promise<Set<string>>
     });
 
   return standardObjects;
+}
+
+export function capitalize(string: string): string {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+export function mapFields(fields: CustomField[]): Map<string, CustomField> {
+  const fieldMap = new Map<string, CustomField>();
+  // use for of loop
+  for (const field of fields) {
+    if (field.fullName) {
+      fieldMap.set(field.fullName, field);
+    }
+  }
+  return fieldMap;
 }
