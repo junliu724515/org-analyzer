@@ -19,6 +19,7 @@ export type DictionaryBuilderOptions = {
 export type DictionaryBuilderResult = {
   success: boolean;
   objects?: Set<string>;
+  error?: Error | string;
 };
 
 export class DictionaryGenerator {
@@ -181,15 +182,21 @@ export class DictionaryGenerator {
       outputTime: true,
       output: this.options.dir ? this.options.dir : '.',
       projectName,
-      generateCharts: false,
-      lucidchart: false,
+      generateCharts: true,
+      lucidchart: true,
     };
 
     const excelBuilder = new ExcelBuilder(excelBuilderOptions);
     const result = await excelBuilder.generate();
 
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error,
+      };
+    }
     return {
-      success: result,
+      success: result.success,
       objects: objectSet,
     };
   }

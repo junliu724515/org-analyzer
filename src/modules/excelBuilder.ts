@@ -1,8 +1,10 @@
+import * as fs from 'node:fs';
 import path from 'node:path';
 import { Connection } from '@salesforce/core';
 import { Workbook, Worksheet } from 'excel4node';
 import { ValidationRule, CustomField, CustomObject } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 import { DescribeSObjectResult, Field } from '@jsforce/jsforce-node/lib/types/common.js';
+import { Optional } from '@jsforce/jsforce-node/lib/types/util.js';
 import { capitalize, mapFields } from './helper.js';
 
 // import { Config } from './utils.js';
@@ -26,6 +28,11 @@ export type ExcelBuilderOptions = {
   projectName: string;
   generateCharts: boolean;
   lucidchart: boolean;
+};
+
+export type ExcelBuilderResult = {
+  success: boolean;
+  error?: Error | string;
 };
 
 // const root = path.dirname(fileURLToPath(import.meta.url));
@@ -668,208 +675,213 @@ export default class ExcelBuilder {
     }
   }
 
-  // // eslint-disable-next-line class-methods-use-this
-  // public generateChart(objectName: string, fields: ExtendedField[]): string {
-  //   let chart = '<html>' + '\n' + '<div>';
-  //   let cpt = 0;
-  //   for (const field of fields) {
-  //     // Type property
-  //     const type = Utils.capitalize(field.type);
-  //     let add = false;
-  //     // const attribute = null;
-  //     const fieldLength = field.length ?? '';
-  //     let relationObject: Optional<string[]>;
-  //     let attributeKey = '';
-  //     let attributeType = '';
-  //
-  //     if (type === 'Reference' && field.referenceTo != null) {
-  //       add = true;
-  //       attributeKey = 'FOREIGN KEY';
-  //       attributeType = 'LOOKUP';
-  //       relationObject = field.referenceTo;
-  //     }
-  //     if (type === 'MasterDetail') {
-  //       add = true;
-  //       attributeKey = 'FOREIGN KEY';
-  //       attributeType = 'MASTER DETAIL';
-  //       relationObject = field.referenceTo;
-  //     }
-  //     if (type === 'Id') {
-  //       add = true;
-  //       attributeKey = 'PRIMARY KEY';
-  //       attributeType = 'ID';
-  //     }
-  //
-  //     if (add) {
-  //       const fieldLabel = field.label ?? field.name;
-  //       const fieldName = field.name;
-  //
-  //       if (type === 'Id') {
-  //         chart +=
-  //           'postgresql;ELSA;Salesforce;&quot;' +
-  //           objectName +
-  //           ' (' +
-  //           objectName +
-  //           ')&quot;;&quot;' +
-  //           objectName +
-  //           ' ID (' +
-  //           fieldName +
-  //           ')&quot;;' +
-  //           cpt +
-  //           ';&quot;' +
-  //           attributeType +
-  //           '&quot;;' +
-  //           fieldLength +
-  //           ';&quot;' +
-  //           attributeKey +
-  //           '&quot;;;' +
-  //           '\n';
-  //       } else {
-  //         chart +=
-  //           'postgresql;ELSA;Salesforce;&quot;' +
-  //           objectName +
-  //           ' (' +
-  //           objectName +
-  //           ')&quot;;&quot;' +
-  //           fieldLabel +
-  //           ' (' +
-  //           fieldName +
-  //           ')&quot;;' +
-  //           cpt +
-  //           ';&quot;' +
-  //           attributeType +
-  //           '&quot;;' +
-  //           fieldLength +
-  //           ';&quot;' +
-  //           attributeKey +
-  //           '&quot;;&quot;Salesforce&quot;;&quot;' +
-  //           relationObject?.join(',') +
-  //           ' (' +
-  //           relationObject?.join(',') +
-  //           ')&quot;;&quot;' +
-  //           relationObject?.join(',') +
-  //           ' ID (Id)&quot;' +
-  //           '\n';
-  //       }
-  //
-  //       cpt++;
-  //     }
-  //   }
-  //   // // Foreach field
-  //   // for (let j = 0; j < fields.length; j++) {
-  //   //   const field = fields[j];
-  //   //
-  //   //
-  //   //
-  //   // }
-  //   chart += '</div>' + '\n' + '</html>';
-  //   return chart;
-  // }
+  // eslint-disable-next-line class-methods-use-this
+  public generateChart(objectName: string, describeSObjectResult: DescribeSObjectResult): string {
+    let chart = '\n';
+    const refObjects: string[] = [];
+    let ref = '';
+    for (const field of describeSObjectResult.fields) {
+      // Type property
+      const type = capitalize(field.type);
+      let add = false;
+      let relationObject: Optional<string[]>;
 
-  public async generate(): Promise<boolean> {
-    // this.logger('Generating...');
-    const sObjects = this.opts.objects;
-    // let chart: string = '';
-
-    const describePromises = [];
-    const metadataPromises = [];
-    for (const object of sObjects) {
-      describePromises.push(this.opts.conn.describe(object));
-      metadataPromises.push(this.opts.conn.metadata.read('CustomObject', object));
-    }
-    const describeSObjectResults = await Promise.all(describePromises);
-    const metadataResults = await Promise.all(metadataPromises);
-
-    // Create maps for storing results
-    const describeMap = new Map<string, DescribeSObjectResult>(); // Map with `name` as key
-    const metadataMap = new Map<string, CustomObject>(); // Map with `fullName` as key
-
-    for (const describeSObjectResult of describeSObjectResults) {
-      describeMap.set(describeSObjectResult.name, describeSObjectResult);
-    }
-
-    for (const metadataResult of metadataResults) {
-      if (metadataResult.fullName) {
-        metadataMap.set(metadataResult.fullName, metadataResult);
+      if (type === 'Reference' && field.referenceTo != null) {
+        add = true;
+        relationObject = field.referenceTo;
+      }
+      if (type === 'MasterDetail') {
+        add = true;
+        relationObject = field.referenceTo;
+      }
+      if (add) {
+        if (type === 'Reference') {
+          ref = ' o{--o| ';
+        } else {
+          ref = ' o{--|| ';
+        }
+        if (relationObject) {
+          for (const refObj of relationObject) {
+            if (!refObjects.includes(refObj) && refObj !== 'User' && refObj !== 'RecordType') {
+              refObjects.push(refObj);
+              chart += objectName + ref + refObj + ' : belongs' + '\n';
+            }
+          }
+        }
       }
     }
+    for (const childRelationship of describeSObjectResult.childRelationships) {
+      if (
+        childRelationship.childSObject.includes('__c') ||
+        (describeSObjectResult.custom && childRelationship.field.includes('__c'))
+      ) {
+        if (!refObjects.includes(childRelationship.childSObject)) {
+          if (!childRelationship.cascadeDelete) {
+            ref = ' o{--o| ';
+          } else {
+            ref = ' o{--|| ';
+          }
+          refObjects.push(childRelationship.childSObject);
+          chart += childRelationship.childSObject + ref + objectName + ' : has' + '\n';
+        }
+      }
+    }
+    chart += objectName + '{}';
+    return chart;
+  }
 
-    for (const object of sObjects) {
-      // for (let i = 0; i < sObjects.length; i++) {
-      // const cur = i + 1;
+  // eslint-disable-next-line class-methods-use-this
+  public generateChartHtmlContent(mermaidContent: string): string {
+    return `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Program ERD</title>
+            <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+            <style>
+                .mermaid {
+                    /*font-family: "Arial", sans-serif;*/
+                    height: 100%;
+                    width: 200%;
+                }
+            </style>
+          </head>
+          <body>
+          <h3>Program ERD</h3>
+          <div class="mermaid">
+            ${mermaidContent}
+          </div>
 
-      const worksheet = wb.addWorksheet(object);
-      const line = this.createHeader(worksheet);
-      // const describePath = path.join(root, FILE_DIR, '/describe/' + sObjects[i] + '.json');
-      // const metadataPath = path.join(root, FILE_DIR, '/metadata/' + sObjects[i] + '.json');
-      let fieldsMap = new Map<string, CustomField>();
+          <script>
+            mermaid.initialize({ startOnLoad: true });
+          </script>
+          </body>
+          </html>
+  `;
+  }
 
-      if (describeMap.get(object) !== undefined) {
-        const currentObjectFieldsDescribe = describeMap.get(object)?.fields as ExtendedField[];
-        let currentObjectFieldsMetadata;
-        if (metadataMap.get(object) !== undefined) {
-          currentObjectFieldsMetadata = metadataMap.get(object);
-          if (currentObjectFieldsMetadata?.fields != null) {
-            fieldsMap = mapFields(currentObjectFieldsMetadata.fields);
+  public async generate(): Promise<ExcelBuilderResult> {
+    try {
+      // this.logger('Generating...');
+      const sObjects = this.opts.objects;
+      let chart: string = 'erDiagram';
+
+      const describePromises = [];
+      const metadataPromises = [];
+      for (const object of sObjects) {
+        describePromises.push(this.opts.conn.describe(object));
+        metadataPromises.push(this.opts.conn.metadata.read('CustomObject', object));
+      }
+      const describeSObjectResults = await Promise.all(describePromises);
+      const metadataResults = await Promise.all(metadataPromises);
+
+      // Create maps for storing results
+      const describeMap = new Map<string, DescribeSObjectResult>(); // Map with `name` as key
+      const metadataMap = new Map<string, CustomObject>(); // Map with `fullName` as key
+
+      for (const describeSObjectResult of describeSObjectResults) {
+        describeMap.set(describeSObjectResult.name, describeSObjectResult);
+      }
+
+      for (const metadataResult of metadataResults) {
+        if (metadataResult.fullName) {
+          metadataMap.set(metadataResult.fullName, metadataResult);
+        }
+      }
+
+      for (const object of sObjects) {
+        // for (let i = 0; i < sObjects.length; i++) {
+        // const cur = i + 1;
+
+        const worksheet = wb.addWorksheet(object);
+        const line = this.createHeader(worksheet);
+        // const describePath = path.join(root, FILE_DIR, '/describe/' + sObjects[i] + '.json');
+        // const metadataPath = path.join(root, FILE_DIR, '/metadata/' + sObjects[i] + '.json');
+        let fieldsMap = new Map<string, CustomField>();
+
+        if (describeMap.get(object) !== undefined) {
+          const currentObjectFieldsDescribe = describeMap.get(object)?.fields as ExtendedField[];
+          let currentObjectFieldsMetadata;
+          if (metadataMap.get(object) !== undefined) {
+            currentObjectFieldsMetadata = metadataMap.get(object);
+            if (currentObjectFieldsMetadata?.fields != null) {
+              fieldsMap = mapFields(currentObjectFieldsMetadata.fields);
+            }
+          }
+
+          for (const field of currentObjectFieldsDescribe) {
+            const fieldName = field.name;
+
+            if (fieldsMap.get(fieldName) != null) {
+              const correspondingField = fieldsMap.get(fieldName);
+              if (correspondingField?.description != null) {
+                field.description = correspondingField.description;
+              }
+              if (correspondingField?.type === 'MasterDetail') {
+                field.type = correspondingField.type;
+              }
+              if (correspondingField?.securityClassification != null) {
+                field.securityClassification = correspondingField.securityClassification;
+              }
+
+              if (correspondingField?.unique != null) {
+                field.unique = correspondingField.unique;
+              }
+            }
+          }
+          // currentObjectFieldsDescribe.sort(Utils.sortByTwoProperty('custom', 'name'));
+          if (currentObjectFieldsMetadata) {
+            this.writeFields(
+              worksheet,
+              currentObjectFieldsDescribe,
+              line,
+              currentObjectFieldsMetadata?.validationRules
+            );
+          }
+          if (this.opts.lucidchart) {
+            chart += this.generateChart(object, describeMap.get(object) as DescribeSObjectResult);
+            // chart += '\n' + object + ' {}';
           }
         }
 
-        for (const field of currentObjectFieldsDescribe) {
-          const fieldName = field.name;
-
-          if (fieldsMap.get(fieldName) != null) {
-            const correspondingField = fieldsMap.get(fieldName);
-            if (correspondingField?.description != null) {
-              field.description = correspondingField.description;
-            }
-            if (correspondingField?.type === 'MasterDetail') {
-              field.type = correspondingField.type;
-            }
-            if (correspondingField?.securityClassification != null) {
-              field.securityClassification = correspondingField.securityClassification;
-            }
-
-            if (correspondingField?.unique != null) {
-              field.unique = correspondingField.unique;
-            }
-          }
-        }
-        // currentObjectFieldsDescribe.sort(Utils.sortByTwoProperty('custom', 'name'));
-        if (currentObjectFieldsMetadata) {
-          this.writeFields(worksheet, currentObjectFieldsDescribe, line, currentObjectFieldsMetadata?.validationRules);
-        }
-        // if (this.Opts.lucidchart) {
-        //   chart += this.generateChart(sObjects[i], currentObjectFieldsDescribe);
+        // if (this.config.debug) {
+        //   Utils.log(
+        //     '#' + sObjects[i] + '\n#Validation RULES ' + JSON.stringify(currentObjectFieldsMetadata.validationRules),
+        //     this.config
+        //   );
         // }
       }
 
-      // if (this.config.debug) {
-      //   Utils.log(
-      //     '#' + sObjects[i] + '\n#Validation RULES ' + JSON.stringify(currentObjectFieldsMetadata.validationRules),
-      //     this.config
-      //   );
-      // }
-    }
+      if (this.opts.generateCharts) {
+        // Generate chart file (Lucidchart)
+        // this.logger('Saving lucidchart file...');
+        const chartContent = this.generateChartHtmlContent(chart);
+        const filePath = path.join(this.opts.output, 'chart.html');
+        fs.writeFileSync(filePath, chartContent, 'utf-8');
+        // this.logger('Lucidchart.txt file successfully saved!');
+      }
 
-    // if (this.Opts.generateCharts) {
-    //   // Generate chart file (Lucidchart)
-    //   // this.logger('Saving lucidchart file...');
-    //   const filePath = path.join(this.Opts.output, 'lucidchart.txt');
-    //   fs.writeFileSync(filePath, chart, 'utf-8');
-    //   // this.logger('Lucidchart.txt file successfully saved!');
-    // }
-
-    // Generate output Excel file
-    const currentDate = new Date(Date.now());
-    let currentDateString = currentDate.toISOString();
-    if (this.opts.outputTime) {
-      currentDateString = currentDateString.replace('T', '_').replace('Z', '').replace(/:/g, '_').replace('.', '_');
-    } else {
-      currentDateString = currentDateString.substring(0, currentDateString.indexOf('T'));
+      // Generate output Excel file
+      const currentDate = new Date(Date.now());
+      let currentDateString = currentDate.toISOString();
+      if (this.opts.outputTime) {
+        currentDateString = currentDateString.replace('T', '_').replace('Z', '').replace(/:/g, '_').replace('.', '_');
+      } else {
+        currentDateString = currentDateString.substring(0, currentDateString.indexOf('T'));
+      }
+      const fileName = this.opts.projectName + '-' + currentDateString + '.xlsx';
+      const outputFile = path.join(this.opts.output, fileName);
+      wb.write(outputFile);
+    } catch (error) {
+      return {
+        success: false,
+        error: error as Error,
+      };
     }
-    const fileName = this.opts.projectName + '-' + currentDateString + '.xlsx';
-    const outputFile = path.join(this.opts.output, fileName);
-    wb.write(outputFile);
-    return true;
+    return {
+      success: true,
+    };
   }
 }

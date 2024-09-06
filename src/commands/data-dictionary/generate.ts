@@ -76,6 +76,12 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     //   `hello ${name} from /mnt/c/Users/junli/Workspace/JM/org-analyzer/src/commands/data-dictionary/generate.ts`
     // );
     this.log(`result: ${result.objects?.size}`);
+    if (!result.success && result.error) {
+      this.error(result.error);
+      return {
+        path: '/mnt/c/Users/junli/Workspace/JM/org-analyzer/src/commands/data-dictionary/generate.ts',
+      };
+    }
     return {
       path: '/mnt/c/Users/junli/Workspace/JM/org-analyzer/src/commands/data-dictionary/generate.ts',
       objects: result.objects,
