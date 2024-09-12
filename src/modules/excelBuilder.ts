@@ -4,8 +4,14 @@ import { Connection } from '@salesforce/core';
 import { Workbook, Worksheet } from 'excel4node';
 import { ValidationRule, CustomField, CustomObject } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 import { DescribeSObjectResult, Field } from '@jsforce/jsforce-node/lib/types/common.js';
-import { Optional } from '@jsforce/jsforce-node/lib/types/util.js';
-import { capitalize, mapFields } from './helper.js';
+import {
+  capitalize,
+  mapFields,
+  generateMermaidChartHtml,
+  generateMermaidChart,
+  generateSObjectListPage,
+  getStandardObjects,
+} from './helper.js';
 
 // import { Config } from './utils.js';
 // import Utils from './utils.js';
@@ -28,6 +34,7 @@ export type ExcelBuilderOptions = {
   projectName: string;
   generateCharts: boolean;
   lucidchart: boolean;
+  mermaidChart: boolean;
 };
 
 export type ExcelBuilderResult = {
@@ -675,98 +682,27 @@ export default class ExcelBuilder {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  public generateChart(objectName: string, describeSObjectResult: DescribeSObjectResult): string {
-    let chart = '\n';
-    const refObjects: string[] = [];
-    let ref = '';
-    for (const field of describeSObjectResult.fields) {
-      // Type property
-      const type = capitalize(field.type);
-      let add = false;
-      let relationObject: Optional<string[]>;
-
-      if (type === 'Reference' && field.referenceTo != null) {
-        add = true;
-        relationObject = field.referenceTo;
-      }
-      if (type === 'MasterDetail') {
-        add = true;
-        relationObject = field.referenceTo;
-      }
-      if (add) {
-        if (type === 'Reference') {
-          ref = ' o{--o| ';
-        } else {
-          ref = ' o{--|| ';
-        }
-        if (relationObject) {
-          for (const refObj of relationObject) {
-            if (!refObjects.includes(refObj) && refObj !== 'User' && refObj !== 'RecordType') {
-              refObjects.push(refObj);
-              chart += objectName + ref + refObj + ' : belongs' + '\n';
-            }
-          }
-        }
-      }
-    }
-    for (const childRelationship of describeSObjectResult.childRelationships) {
-      if (
-        childRelationship.childSObject.includes('__c') ||
-        (describeSObjectResult.custom && childRelationship.field.includes('__c'))
-      ) {
-        if (!refObjects.includes(childRelationship.childSObject)) {
-          if (!childRelationship.cascadeDelete) {
-            ref = ' o{--o| ';
-          } else {
-            ref = ' o{--|| ';
-          }
-          refObjects.push(childRelationship.childSObject);
-          chart += childRelationship.childSObject + ref + objectName + ' : has' + '\n';
-        }
-      }
-    }
-    chart += objectName + '{}';
-    return chart;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  public generateChartHtmlContent(mermaidContent: string): string {
-    return `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Program ERD</title>
-            <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-            <style>
-                .mermaid {
-                    /*font-family: "Arial", sans-serif;*/
-                    height: 100%;
-                    width: 200%;
-                }
-            </style>
-          </head>
-          <body>
-          <h3>Program ERD</h3>
-          <div class="mermaid">
-            ${mermaidContent}
-          </div>
-
-          <script>
-            mermaid.initialize({ startOnLoad: true });
-          </script>
-          </body>
-          </html>
-  `;
-  }
-
+  // eslint-disable-next-line complexity
   public async generate(): Promise<ExcelBuilderResult> {
     try {
       // this.logger('Generating...');
       const sObjects = this.opts.objects;
-      let chart: string = 'erDiagram';
+      const standardObjects = await getStandardObjects(this.opts.conn);
+      // let chart: string = '';
+
+      // Generate output Excel file
+      const currentDate = new Date(Date.now());
+      let currentDateString = currentDate.toISOString();
+      if (this.opts.outputTime) {
+        currentDateString = currentDateString.replace('T', '_').replace('Z', '').replace(/:/g, '_').replace('.', '_');
+      } else {
+        currentDateString = currentDateString.substring(0, currentDateString.indexOf('T'));
+      }
+
+      const dirpath = path.join(this.opts.output, 'DataDictionary' + '-' + currentDateString);
+      if (!fs.existsSync(dirpath)) {
+        fs.mkdirSync(dirpath, { recursive: true });
+      }
 
       const describePromises = [];
       const metadataPromises = [];
@@ -840,39 +776,41 @@ export default class ExcelBuilder {
               currentObjectFieldsMetadata?.validationRules
             );
           }
-          if (this.opts.lucidchart) {
-            chart += this.generateChart(object, describeMap.get(object) as DescribeSObjectResult);
-            // chart += '\n' + object + ' {}';
+          if (this.opts.mermaidChart) {
+            const mermaidChart = generateMermaidChart(
+              object,
+              standardObjects,
+              describeMap.get(object) as DescribeSObjectResult
+            );
+            const chartContent = generateMermaidChartHtml(object, mermaidChart);
+            const chartDirpath = path.join(dirpath, 'ERDCharts');
+            if (!fs.existsSync(chartDirpath)) {
+              fs.mkdirSync(chartDirpath, { recursive: true });
+            }
+            const filePath = path.join(chartDirpath, object + '.html');
+            fs.writeFileSync(filePath, chartContent, 'utf-8');
           }
         }
-
-        // if (this.config.debug) {
-        //   Utils.log(
-        //     '#' + sObjects[i] + '\n#Validation RULES ' + JSON.stringify(currentObjectFieldsMetadata.validationRules),
-        //     this.config
-        //   );
-        // }
       }
 
-      if (this.opts.generateCharts) {
-        // Generate chart file (Lucidchart)
-        // this.logger('Saving lucidchart file...');
-        const chartContent = this.generateChartHtmlContent(chart);
-        const filePath = path.join(this.opts.output, 'chart.html');
+      if (this.opts.mermaidChart) {
+        const chartContent = generateSObjectListPage(sObjects);
+        const filePath = path.join(dirpath, 'ERDObjectList.html');
         fs.writeFileSync(filePath, chartContent, 'utf-8');
-        // this.logger('Lucidchart.txt file successfully saved!');
       }
+
+      // if (this.opts.generateCharts) {
+      //   // Generate chart file (Lucidchart)
+      //   // this.logger('Saving lucidchart file...');
+      //   const chartContent = this.generateMermaidChartHtml(chart);
+      //   const filePath = path.join(this.opts.output, 'chart.html');
+      //   fs.writeFileSync(filePath, chartContent, 'utf-8');
+      //   // this.logger('Lucidchart.txt file successfully saved!');
+      // }
 
       // Generate output Excel file
-      const currentDate = new Date(Date.now());
-      let currentDateString = currentDate.toISOString();
-      if (this.opts.outputTime) {
-        currentDateString = currentDateString.replace('T', '_').replace('Z', '').replace(/:/g, '_').replace('.', '_');
-      } else {
-        currentDateString = currentDateString.substring(0, currentDateString.indexOf('T'));
-      }
       const fileName = this.opts.projectName + '-' + currentDateString + '.xlsx';
-      const outputFile = path.join(this.opts.output, fileName);
+      const outputFile = path.join(dirpath, fileName);
       wb.write(outputFile);
     } catch (error) {
       return {

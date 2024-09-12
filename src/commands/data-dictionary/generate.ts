@@ -8,7 +8,6 @@ Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('org-analyzer', 'data-dictionary.generate');
 
 export type DataDictionaryGenerateResult = {
-  path: string;
   objects?: Set<string>;
 };
 
@@ -18,12 +17,6 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
   public static readonly examples = messages.getMessages('examples');
 
   public static readonly flags = {
-    // name: Flags.string({
-    //   summary: messages.getMessage('flags.name.summary'),
-    //   description: messages.getMessage('flags.name.description'),
-    //   char: 'n',
-    //   required: false,
-    // }),
     'include-all-managed': Flags.boolean({
       summary: messages.getMessage('flags.include-all-managed.summary'),
       char: 'm',
@@ -67,23 +60,15 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       startObject: flags['start-object'],
     };
 
+    this.spinner.start('TODO, generating data dictionary...');
     const result = await new DictionaryGenerator(dictionaryBuilderOptions).build();
-
-    // this.log(`result: ${result}`);
-
-    // const name = flags.name ?? 'world';
-    // this.log(
-    //   `hello ${name} from /mnt/c/Users/junli/Workspace/JM/org-analyzer/src/commands/data-dictionary/generate.ts`
-    // );
     this.log(`result: ${result.objects?.size}`);
+    this.spinner.stop();
     if (!result.success && result.error) {
       this.error(result.error);
-      return {
-        path: '/mnt/c/Users/junli/Workspace/JM/org-analyzer/src/commands/data-dictionary/generate.ts',
-      };
+      return {};
     }
     return {
-      path: '/mnt/c/Users/junli/Workspace/JM/org-analyzer/src/commands/data-dictionary/generate.ts',
       objects: result.objects,
     };
   }
