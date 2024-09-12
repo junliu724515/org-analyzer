@@ -23,7 +23,6 @@ type ExtendedField = {
 } & Field;
 
 export type ExcelBuilderOptions = {
-  debug: boolean;
   conn: Connection;
   objects: string[];
   columns: Record<string, number>;
@@ -702,6 +701,12 @@ export default class ExcelBuilder {
       const dirpath = path.join(this.opts.output, 'DataDictionary' + '-' + currentDateString);
       if (!fs.existsSync(dirpath)) {
         fs.mkdirSync(dirpath, { recursive: true });
+      } else {
+        // remove the files and directories in the folder
+        fs.rm(dirpath, { recursive: true, force: true }, (err) => ({
+          success: false,
+          error: err as Error,
+        }));
       }
 
       const describePromises = [];

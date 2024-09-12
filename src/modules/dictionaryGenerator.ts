@@ -80,7 +80,6 @@ export class DictionaryGenerator {
     // await this.generateExcel(describeMap, metadataMap);
 
     const excelBuilderOptions: ExcelBuilderOptions = {
-      debug: false,
       conn: this.options.conn,
       columns: {
         ReadOnly: 5,
@@ -95,7 +94,7 @@ export class DictionaryGenerator {
       objects: Array.from(objectSet),
       hideTechFields: false,
       techFieldPrefix: 'TECH_',
-      outputTime: true,
+      outputTime: false,
       output: this.options.dir ? this.options.dir : '.',
       projectName,
       generateCharts: true,
