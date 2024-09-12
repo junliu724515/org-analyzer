@@ -4,7 +4,11 @@ The data-dictionary feature enables automatic extraction and documentation of me
 
 # description
 
-More information about a command. Don't repeat the summary.
+By default, it will list all custom objects and all standard objects with at least one custom field. Additionally, you can choose to include or exclude any managed package objects. Above all, a very unique feature is the ability to crawl objects through their relationships, which is especially useful for an org split use case to separate the data model among multiple apps.
+
+# spinner.message
+
+Generating data dictionary...
 
 # flags.name.summary
 
@@ -49,3 +53,11 @@ Directory for saving outputs.
 # flags.start-object.summary
 
 Specifies the sObject to begin crawling through its relationships.
+
+# flags.output-time.summary
+
+Flag controls the format of the appended timestamp in the output folder name. If set to true, both date and time are appended; if false, only the date is appended.
+
+# flags.skip-charts.summary
+
+Flag determines whether ERD charts are generated. When true, an ERD chart and a text file for Lucidchart import will be not be generated.

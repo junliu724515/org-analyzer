@@ -42,6 +42,12 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     'start-object': Flags.string({
       summary: messages.getMessage('flags.start-object.summary'),
     }),
+    'output-time': Flags.boolean({
+      summary: messages.getMessage('flags.output-time.summary'),
+    }),
+    'skip-charts': Flags.boolean({
+      summary: messages.getMessage('flags.skip-charts.summary'),
+    }),
   };
 
   public async run(): Promise<DataDictionaryGenerateResult> {
@@ -58,9 +64,11 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       sobjects: flags.sobjects,
       dir: flags.dir,
       startObject: flags['start-object'],
+      outputTime: flags['output-time'],
+      skipCharts: flags['skip-charts'],
     };
 
-    this.spinner.start('TODO, generating data dictionary...');
+    this.spinner.start(messages.getMessage('spinner.message'));
     const result = await new DictionaryGenerator(dictionaryBuilderOptions).build();
     this.log(`result: ${result.objects?.size}`);
     this.spinner.stop();

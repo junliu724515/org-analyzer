@@ -13,6 +13,8 @@ export type DictionaryBuilderOptions = {
   sobjects?: string;
   dir?: string;
   startObject?: string;
+  outputTime?: boolean;
+  skipCharts?: boolean;
 };
 
 export type DictionaryBuilderResult = {
@@ -94,12 +96,10 @@ export class DictionaryGenerator {
       objects: Array.from(objectSet),
       hideTechFields: false,
       techFieldPrefix: 'TECH_',
-      outputTime: false,
+      outputTime: this.options.outputTime ? this.options.outputTime : false,
       output: this.options.dir ? this.options.dir : '.',
       projectName,
-      generateCharts: true,
-      lucidchart: true,
-      mermaidChart: true,
+      generateCharts: !this.options.skipCharts,
     };
 
     const excelBuilder = new ExcelBuilder(excelBuilderOptions);

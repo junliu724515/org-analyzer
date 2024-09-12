@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Connection } from '@salesforce/core';
 import { Workbook, Worksheet } from 'excel4node';
 import { ValidationRule, CustomField, CustomObject } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
-import { DescribeSObjectResult, Field } from '@jsforce/jsforce-node/lib/types/common.js';
+import { DescribeSObjectResult } from '@jsforce/jsforce-node/lib/types/common.js';
 import {
   capitalize,
   mapFields,
@@ -11,16 +11,9 @@ import {
   generateMermaidChart,
   generateSObjectListPage,
   getStandardObjects,
+  ExtendedField,
+  generateLucidChart,
 } from './helper.js';
-
-// import { Config } from './utils.js';
-// import Utils from './utils.js';
-
-type ExtendedField = {
-  // Add new properties or methods here
-  description?: string | null | undefined;
-  securityClassification?: string | null | undefined;
-} & Field;
 
 export type ExcelBuilderOptions = {
   conn: Connection;
@@ -32,8 +25,8 @@ export type ExcelBuilderOptions = {
   output: string;
   projectName: string;
   generateCharts: boolean;
-  lucidchart: boolean;
-  mermaidChart: boolean;
+  // lucidchart: boolean;
+  // mermaidChart: boolean;
 };
 
 export type ExcelBuilderResult = {
@@ -687,7 +680,7 @@ export default class ExcelBuilder {
       // this.logger('Generating...');
       const sObjects = this.opts.objects;
       const standardObjects = await getStandardObjects(this.opts.conn);
-      // let chart: string = '';
+      let chart: string = '';
 
       // Generate output Excel file
       const currentDate = new Date(Date.now());
@@ -699,14 +692,21 @@ export default class ExcelBuilder {
       }
 
       const dirpath = path.join(this.opts.output, 'DataDictionary' + '-' + currentDateString);
-      if (!fs.existsSync(dirpath)) {
-        fs.mkdirSync(dirpath, { recursive: true });
-      } else {
+
+      if (fs.existsSync(dirpath)) {
         // remove the files and directories in the folder
-        fs.rm(dirpath, { recursive: true, force: true }, (err) => ({
-          success: false,
-          error: err as Error,
-        }));
+        fs.rm(dirpath, { recursive: true, force: true }, (err) => {
+          if (err) {
+            return {
+              success: false,
+              error: err as Error,
+            };
+          } else {
+            fs.mkdirSync(dirpath, { recursive: true });
+          }
+        });
+      } else {
+        fs.mkdirSync(dirpath, { recursive: true });
       }
 
       const describePromises = [];
@@ -781,7 +781,7 @@ export default class ExcelBuilder {
               currentObjectFieldsMetadata?.validationRules
             );
           }
-          if (this.opts.mermaidChart) {
+          if (this.opts.generateCharts) {
             const mermaidChart = generateMermaidChart(
               object,
               standardObjects,
@@ -794,14 +794,18 @@ export default class ExcelBuilder {
             }
             const filePath = path.join(chartDirpath, object + '.html');
             fs.writeFileSync(filePath, chartContent, 'utf-8');
+
+            // luicdchart
+            chart += generateLucidChart(object, currentObjectFieldsDescribe);
           }
         }
       }
 
-      if (this.opts.mermaidChart) {
+      if (this.opts.generateCharts) {
         const chartContent = generateSObjectListPage(sObjects);
-        const filePath = path.join(dirpath, 'ERDObjectList.html');
-        fs.writeFileSync(filePath, chartContent, 'utf-8');
+        fs.writeFileSync(path.join(dirpath, 'ERDObjectList.html'), chartContent, 'utf-8');
+        // Lucidchart
+        fs.writeFileSync(path.join(dirpath, 'lucidchart.txt'), chart, 'utf-8');
       }
 
       // if (this.opts.generateCharts) {

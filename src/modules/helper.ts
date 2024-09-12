@@ -1,7 +1,13 @@
 import { Connection } from '@salesforce/core';
 import { CustomField } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
-import { DescribeSObjectResult } from '@jsforce/jsforce-node/lib/types/common.js';
+import { DescribeSObjectResult, Field } from '@jsforce/jsforce-node/lib/types/common.js';
 import { Optional } from '@jsforce/jsforce-node/lib/types/util.js';
+
+export type ExtendedField = {
+  // Add new properties or methods here
+  description?: string | null | undefined;
+  securityClassification?: string | null | undefined;
+} & Field;
 
 /**
  * Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata .
@@ -170,5 +176,95 @@ export function generateMermaidChart(
     }
   }
   chart += objectName + '{}';
+  return chart;
+}
+
+export function generateLucidChart(objectName: string, fields: ExtendedField[]): string {
+  let chart = '<html>' + '\n' + '<div>';
+  let cpt = 0;
+  for (const field of fields) {
+    // Type property
+    const type = capitalize(field.type);
+    let add = false;
+    // const attribute = null;
+    const fieldLength = field.length ?? '';
+    let relationObject: Optional<string[]>;
+    let attributeKey = '';
+    let attributeType = '';
+
+    if (type === 'Reference' && field.referenceTo != null) {
+      add = true;
+      attributeKey = 'FOREIGN KEY';
+      attributeType = 'LOOKUP';
+      relationObject = field.referenceTo;
+    }
+    if (type === 'MasterDetail') {
+      add = true;
+      attributeKey = 'FOREIGN KEY';
+      attributeType = 'MASTER DETAIL';
+      relationObject = field.referenceTo;
+    }
+    if (type === 'Id') {
+      add = true;
+      attributeKey = 'PRIMARY KEY';
+      attributeType = 'ID';
+    }
+
+    if (add) {
+      const fieldLabel = field.label ?? field.name;
+      const fieldName = field.name;
+
+      if (type === 'Id') {
+        chart +=
+          'postgresql;ELSA;Salesforce;&quot;' +
+          objectName +
+          ' (' +
+          objectName +
+          ')&quot;;&quot;' +
+          objectName +
+          ' ID (' +
+          fieldName +
+          ')&quot;;' +
+          cpt +
+          ';&quot;' +
+          attributeType +
+          '&quot;;' +
+          fieldLength +
+          ';&quot;' +
+          attributeKey +
+          '&quot;;;' +
+          '\n';
+      } else {
+        chart +=
+          'postgresql;ELSA;Salesforce;&quot;' +
+          objectName +
+          ' (' +
+          objectName +
+          ')&quot;;&quot;' +
+          fieldLabel +
+          ' (' +
+          fieldName +
+          ')&quot;;' +
+          cpt +
+          ';&quot;' +
+          attributeType +
+          '&quot;;' +
+          fieldLength +
+          ';&quot;' +
+          attributeKey +
+          '&quot;;&quot;Salesforce&quot;;&quot;' +
+          relationObject?.join(',') +
+          ' (' +
+          relationObject?.join(',') +
+          ')&quot;;&quot;' +
+          relationObject?.join(',') +
+          ' ID (Id)&quot;' +
+          '\n';
+      }
+
+      cpt++;
+    }
+  }
+  chart += '</div>' + '\n' + '</html>';
   return chart;
 }
