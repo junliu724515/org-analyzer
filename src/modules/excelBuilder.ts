@@ -31,11 +31,10 @@ export type ExcelBuilderOptions = {
 
 export type ExcelBuilderResult = {
   success: boolean;
+  outputFolder?: string;
   error?: Error | string;
 };
 
-// const root = path.dirname(fileURLToPath(import.meta.url));
-// const FILE_DIR = '../files';
 const MAX_PICKLIST_VALUES = 300;
 
 // Styles
@@ -164,10 +163,6 @@ const alternateRowColor = wb.createStyle({
     fgColor: 'f2f1f3',
   },
 });
-
-//
-// const ws = wb.addWorksheet('Sheet 1');
-// // var startGeneration;
 
 export default class ExcelBuilder {
   private opts: ExcelBuilderOptions;
@@ -808,27 +803,19 @@ export default class ExcelBuilder {
         fs.writeFileSync(path.join(dirpath, 'lucidchart.txt'), chart, 'utf-8');
       }
 
-      // if (this.opts.generateCharts) {
-      //   // Generate chart file (Lucidchart)
-      //   // this.logger('Saving lucidchart file...');
-      //   const chartContent = this.generateMermaidChartHtml(chart);
-      //   const filePath = path.join(this.opts.output, 'chart.html');
-      //   fs.writeFileSync(filePath, chartContent, 'utf-8');
-      //   // this.logger('Lucidchart.txt file successfully saved!');
-      // }
-
       // Generate output Excel file
       const fileName = this.opts.projectName + '-' + currentDateString + '.xlsx';
       const outputFile = path.join(dirpath, fileName);
       wb.write(outputFile);
+      return {
+        success: true,
+        outputFolder: dirpath,
+      };
     } catch (error) {
       return {
         success: false,
         error: error as Error,
       };
     }
-    return {
-      success: true,
-    };
   }
 }

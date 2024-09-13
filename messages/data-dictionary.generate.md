@@ -61,3 +61,15 @@ Flag controls the format of the appended timestamp in the output folder name. If
 # flags.skip-charts.summary
 
 Flag determines whether ERD charts are generated. When true, an ERD chart and a text file for Lucidchart import will be not be generated.
+
+# flags.include-std-objects.summary
+
+Flag allows you to specify a comma-separated list of standard objects to be included in the crawl. By default, standard objects are not crawled, but this flag makes exceptions for the specified objects to further explore their relationships.
+
+# flags.verbose.summary
+
+It displays object list and more details in output.
+
+# flags.include-non-empty-objects.summary
+
+When set to true, ensures that only objects with a record count greater than 0 are included. By default, it is false, allowing all objects to be included regardless of their record count.

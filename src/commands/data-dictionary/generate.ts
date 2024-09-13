@@ -9,6 +9,7 @@ const messages = Messages.loadMessages('org-analyzer', 'data-dictionary.generate
 
 export type DataDictionaryGenerateResult = {
   objects?: Set<string>;
+  outputFolder?: string;
 };
 
 export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGenerateResult> {
@@ -48,6 +49,15 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     'skip-charts': Flags.boolean({
       summary: messages.getMessage('flags.skip-charts.summary'),
     }),
+    'include-std-objects': Flags.string({
+      summary: messages.getMessage('flags.include-std-objects.summary'),
+    }),
+    verbose: Flags.boolean({
+      summary: messages.getMessage('flags.verbose.summary'),
+    }),
+    'include-non-empty-objects': Flags.boolean({
+      summary: messages.getMessage('flags.include-non-empty-objects.summary'),
+    }),
   };
 
   public async run(): Promise<DataDictionaryGenerateResult> {
@@ -66,18 +76,27 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       startObject: flags['start-object'],
       outputTime: flags['output-time'],
       skipCharts: flags['skip-charts'],
+      includeStdObjects: flags['include-std-objects'],
+      includeNonEmptyObjects: flags['include-non-empty-objects'],
     };
 
     this.spinner.start(messages.getMessage('spinner.message'));
     const result = await new DictionaryGenerator(dictionaryBuilderOptions).build();
-    this.log(`result: ${result.objects?.size}`);
     this.spinner.stop();
+    this.log(`success: ${result.success}; outputFolder: ${result.outputFolder}`);
+    if (flags.verbose) {
+      this.log(`result: ${result.objects?.size}`);
+      for (const object of result.objects?.values() ?? []) {
+        this.log(object);
+      }
+    }
     if (!result.success && result.error) {
       this.error(result.error);
       return {};
     }
     return {
       objects: result.objects,
+      outputFolder: result.outputFolder,
     };
   }
 }
