@@ -4,5 +4,8 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": ["./src/**/*.ts", "./typings/**/*.ts"]
+  "include": ["./src/**/*.ts", "./typings/**/*.ts"],
+  "ts-node": {
+    "files": true
+  }
 }

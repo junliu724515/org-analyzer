@@ -1,7 +1,10 @@
 {
   "extends": "@salesforce/dev-config/tsconfig-test-strict-esm",
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "../typings/**/*.ts"],
   "compilerOptions": {
     "skipLibCheck": true
+  },
+  "ts-node": {
+    "files": true
   }
 }

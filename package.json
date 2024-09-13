@@ -134,7 +134,7 @@
       ]
     },
     "test:only": {
-      "command": "nyc mocha \"test/**/*.test.ts\"",
+      "command": "nyc mocha --sort \"test/**/*.test.ts\"",
       "env": {
         "FORCE_COLOR": "2"
       },
