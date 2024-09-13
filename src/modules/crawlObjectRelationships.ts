@@ -1,6 +1,9 @@
 import { Connection } from '@salesforce/core';
 import { getStandardObjects } from './helper.js';
 
+/**
+ * Options for crawling Salesforce objects.
+ */
 export type CrawlObjectsOptions = {
   conn: Connection;
   startObject: string;
@@ -19,11 +22,18 @@ export default class CrawlObjects {
 
   /**
    * Constructor for the CrawlObjects class.
+   *
+   * @param {CrawlObjectsOptions} opts - The options for crawling objects.
    */
   public constructor(opts: CrawlObjectsOptions) {
     this.opts = opts;
   }
 
+  /**
+   * Crawls Salesforce objects starting from the specified object.
+   *
+   * @returns {Promise<string[]>} - A promise that resolves to an array of crawled object names.
+   */
   public async crawl(): Promise<string[]> {
     // Retrieve the list of managed package objects from the Salesforce metadata
     const objectList = await this.opts.conn.metadata.list([{ type: 'CustomObject' }]);
@@ -33,14 +43,13 @@ export default class CrawlObjects {
     this.standardObjects = await getStandardObjects(this.opts.conn);
 
     const customObjectNames = await this.traverseObject(this.opts.startObject);
-    // sort custom object names in alphabetical order
+    // Sort custom object names in alphabetical order
     return Array.from(customObjectNames).sort();
   }
 
   /**
    * Traverses a Salesforce object and its dependencies.
    *
-   * @param {Connection} conn - The Salesforce connection instance.
    * @param {string} customObjectName - The name of the custom object to traverse.
    * @returns {Promise<Set<string>>} - A promise that resolves to a set of crawled object types.
    */
@@ -55,12 +64,12 @@ export default class CrawlObjects {
 
     const childRelationships = await this.retrieveSobjectDependencies(customObjectName);
     for (const childRelationship of this.sobjectToTraverse) {
-      // remove the object already traversed
+      // Remove the object already traversed
       if (childRelationships.has(childRelationship)) {
         childRelationships.delete(childRelationship);
       }
     }
-    // crawl the objects not yet traversed
+    // Crawl the objects not yet traversed
     if (childRelationships.size > 0) {
       childRelationships.forEach((child) => this.sobjectToTraverse.add(child));
       const promises = [];
@@ -75,7 +84,6 @@ export default class CrawlObjects {
   /**
    * Retrieves the dependencies of a Salesforce object.
    *
-   * @param {Connection} conn - The Salesforce connection instance.
    * @param {string} customObjectName - The name of the custom object to retrieve dependencies for.
    * @returns {Promise<Set<string>>} - A promise that resolves to a set of dependent object names.
    */

@@ -1,10 +1,12 @@
-// import path from 'node:path';
 import { Connection } from '@salesforce/core';
 import CrawlObjects, { CrawlObjectsOptions } from './crawlObjectRelationships.js';
 import { getStandardObjects } from './helper.js';
 import ExcelBuilder, { ExcelBuilderOptions } from './excelBuilder.js';
 import { getName } from './project.js';
 
+/**
+ * Options for building the data dictionary.
+ */
 export type DictionaryBuilderOptions = {
   includeManaged: boolean;
   conn: Connection;
@@ -19,6 +21,9 @@ export type DictionaryBuilderOptions = {
   includeNonEmptyObjects?: boolean;
 };
 
+/**
+ * Result of the data dictionary generation.
+ */
 export type DictionaryBuilderResult = {
   success: boolean;
   outputFolder?: string;
@@ -26,23 +31,37 @@ export type DictionaryBuilderResult = {
   error?: Error | string;
 };
 
+/**
+ * Result of the count query.
+ */
 type CountQueryResult = {
   objectName: string;
   recordCount: number;
 };
 
+/**
+ * Class responsible for generating the data dictionary.
+ */
 export class DictionaryGenerator {
   private options: DictionaryBuilderOptions;
 
+  /**
+   * Constructor for DictionaryGenerator.
+   *
+   * @param {DictionaryBuilderOptions} options - The options for building the data dictionary.
+   */
   public constructor(options: DictionaryBuilderOptions) {
     this.options = options;
   }
 
+  /**
+   * Builds the data dictionary.
+   *
+   * @returns {Promise<DictionaryBuilderResult>} The result of the data dictionary generation.
+   */
   public async build(): Promise<DictionaryBuilderResult> {
     const objectSet = await this.identifyObjects();
     const projectName = (await getName()) as string;
-
-    // await this.generateExcel(describeMap, metadataMap);
 
     const excelBuilderOptions: ExcelBuilderOptions = {
       conn: this.options.conn,
@@ -81,14 +100,24 @@ export class DictionaryGenerator {
     };
   }
 
+  /**
+   * Identifies the objects to be included in the data dictionary.
+   *
+   * @returns {Promise<Set<string>>} A set of object names.
+   */
   private async identifyObjects(): Promise<Set<string>> {
+    // Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata .
     const standardObjects = await getStandardObjects(this.options.conn);
+
+    // Initialize a set to store custom objects
     const customObjects = new Set<string>();
 
+    // Split the exclude and include managed prefixes and standard objects into arrays
     const excludePrefixes = this.options.excludeManagedPrefixes?.split(',');
     const includePrefixes = this.options.includeManagedPrefixes?.split(',');
     const includeStdObjects = this.options.includeStdObjects?.split(',');
 
+    // If a start object is specified, crawl its relationships to identify objects
     if (this.options.startObject) {
       const opts = {
         conn: this.options.conn,
@@ -100,15 +129,18 @@ export class DictionaryGenerator {
       return new Set(objectList);
     }
 
+    // If specific sObjects are provided, return them as a set
     if (this.options.sobjects) {
       return new Set(this.options.sobjects.split(','));
     }
 
+    // Retrieve custom object metadata from Salesforce
     const fileProperties = await this.options.conn.metadata.list({ type: 'CustomObject' });
     if (fileProperties.length > 0) {
       for (const object of fileProperties) {
         const isCustomObject = object.fullName.includes('__c');
 
+        // Include objects based on managed prefixes
         if (includePrefixes && object.namespacePrefix) {
           if (includePrefixes.includes(object.namespacePrefix) && isCustomObject) {
             customObjects.add(object.fullName);
@@ -116,47 +148,65 @@ export class DictionaryGenerator {
           continue;
         }
 
+        // Exclude managed objects if not included
         if (!this.options.includeManaged && object.namespacePrefix) {
           continue;
         }
 
+        // Exclude objects based on managed prefixes
         if (this.options.includeManaged && excludePrefixes && object.namespacePrefix) {
           if (excludePrefixes.includes(object.namespacePrefix)) {
             continue;
           }
         }
+
+        // Add custom objects to the set
         if (isCustomObject) {
           customObjects.add(object.fullName);
         }
       }
     }
-    // return the standard and custom objects with non zero count
+
+    // Filter out objects with zero record count if specified
     if (this.options.includeNonEmptyObjects) {
-      const stdObejcts = await this.filerOutZeroCountObejcts(standardObjects);
-      const custObejcts = await this.filerOutZeroCountObejcts(customObjects);
-      return new Set([...Array.from(stdObejcts), ...Array.from(custObejcts)]);
+      const stdObjects = await this.filerOutZeroCountObjects(standardObjects);
+      const custObjects = await this.filerOutZeroCountObjects(customObjects);
+      return new Set([...Array.from(stdObjects), ...Array.from(custObjects)]);
     }
+
+    // Return the combined set of standard and custom objects
     return new Set([...Array.from(standardObjects), ...Array.from(customObjects)]);
   }
 
-  private async filerOutZeroCountObejcts(standardObjects: Set<string>): Promise<Set<string>> {
+  /**
+   * Filters out objects with zero record count.
+   *
+   * @param {Set<string>} objects - The set of object names.
+   * @returns {Promise<Set<string>>} A set of object names with non-zero record count.
+   */
+  private async filerOutZeroCountObjects(objects: Set<string>): Promise<Set<string>> {
     const promises = [];
 
-    for (const name of standardObjects) {
+    for (const name of objects) {
       promises.push(this.getObjectRecordCount(name));
     }
-    // assign results to the object
+
     const results = await Promise.all(promises);
 
-    // filter out objects with no records and return the ordered set
     return new Set(
       results
         .filter((result) => result.recordCount > 0)
         .map((result) => result.objectName)
-        .sort() // sort alphabetically
+        .sort()
     );
   }
 
+  /**
+   * Gets the record count for a given object.
+   *
+   * @param {string} objectName - The name of the object.
+   * @returns {Promise<CountQueryResult>} The result of the count query.
+   */
   private async getObjectRecordCount(objectName: string): Promise<CountQueryResult> {
     const query = `SELECT COUNT() FROM ${objectName}`;
     const result = await this.options.conn.query(query);

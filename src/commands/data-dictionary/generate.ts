@@ -4,19 +4,26 @@ import { Optional } from '@salesforce/ts-types';
 import { getSourceApiVersion } from '../../modules/project.js';
 import { DictionaryGenerator, DictionaryBuilderOptions } from '../../modules/dictionaryGenerator.js';
 
+// Import messages from the 'org-analyzer' package
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('org-analyzer', 'data-dictionary.generate');
 
+// Define the result type for the DataDictionaryGenerate command
 export type DataDictionaryGenerateResult = {
   objects?: Set<string>;
   outputFolder?: string;
 };
 
+/**
+ * Command to generate a data dictionary.
+ */
 export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGenerateResult> {
+  // Command summary, description, and examples
   public static readonly summary = messages.getMessage('summary');
   public static readonly description = messages.getMessage('description');
   public static readonly examples = messages.getMessages('examples');
 
+  // Define the flags for the command
   public static readonly flags = {
     'include-all-managed': Flags.boolean({
       summary: messages.getMessage('flags.include-all-managed.summary'),
@@ -60,12 +67,19 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     }),
   };
 
+  /**
+   * Executes the command to generate a data dictionary.
+   *
+   * @returns {Promise<DataDictionaryGenerateResult>} The result of the data dictionary generation.
+   */
   public async run(): Promise<DataDictionaryGenerateResult> {
+    // Parse the flags provided by the user
     const { flags } = await this.parse(DataDictionaryGenerate);
     const apiVersion: Optional<string> = flags['api-version'] ?? (await getSourceApiVersion());
     const targetOrg = flags['target-org'] ?? (await Org.create({}));
     const conn: Connection = targetOrg.getConnection(apiVersion);
 
+    // Build the options for the DictionaryGenerator
     const dictionaryBuilderOptions: DictionaryBuilderOptions = {
       includeManaged: flags['include-all-managed'] ?? false,
       conn,
@@ -80,20 +94,26 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       includeNonEmptyObjects: flags['include-non-empty-objects'],
     };
 
+    // Start the spinner to indicate processing
     this.spinner.start(messages.getMessage('spinner.message'));
+    // Generate the data dictionary
     const result = await new DictionaryGenerator(dictionaryBuilderOptions).build();
+    // Stop the spinner
     this.spinner.stop();
+    // Log the success message and output folder
     this.log(`success: ${result.success}; outputFolder: ${result.outputFolder}`);
+    // If verbose flag is set, log additional details
     if (flags.verbose) {
       this.log(`result: ${result.objects?.size}`);
       for (const object of result.objects?.values() ?? []) {
         this.log(object);
       }
     }
+    // If the generation was not successful, log the error
     if (!result.success && result.error) {
       this.error(result.error);
-      return {};
     }
+    // Return the result of the data dictionary generation
     return {
       objects: result.objects,
       outputFolder: result.outputFolder,

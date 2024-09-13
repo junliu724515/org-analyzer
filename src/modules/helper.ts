@@ -10,7 +10,7 @@ export type ExtendedField = {
 } & Field;
 
 /**
- * Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata .
+ * Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata.
  *
  * @param {Connection} conn - The Salesforce connection object.
  * @returns {Promise<Set<string>>} - A promise that resolves to a set of standard object names.
@@ -47,10 +47,22 @@ export async function getStandardObjects(conn: Connection): Promise<Set<string>>
   return standardObjects;
 }
 
+/**
+ * Capitalizes the first letter of a string.
+ *
+ * @param {string} string - The string to capitalize.
+ * @returns {string} - The capitalized string.
+ */
 export function capitalize(string: string): string {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+/**
+ * Maps an array of custom fields to a Map with the field full name as the key.
+ *
+ * @param {CustomField[]} fields - The array of custom fields.
+ * @returns {Map<string, CustomField>} - A map of custom fields.
+ */
 export function mapFields(fields: CustomField[]): Map<string, CustomField> {
   const fieldMap = new Map<string, CustomField>();
   // use for of loop
@@ -62,6 +74,12 @@ export function mapFields(fields: CustomField[]): Map<string, CustomField> {
   return fieldMap;
 }
 
+/**
+ * Generates an HTML page listing SObject ERD links.
+ *
+ * @param {string[]} sObjects - The array of SObject names.
+ * @returns {string} - The generated HTML string.
+ */
 export function generateSObjectListPage(sObjects: string[]): string {
   const links = sObjects
     .sort()
@@ -86,6 +104,13 @@ export function generateSObjectListPage(sObjects: string[]): string {
               `;
 }
 
+/**
+ * Generates an HTML page containing a Mermaid chart for a given SObject.
+ *
+ * @param {string} sobjectName - The name of the SObject.
+ * @param {string} mermaidContent - The Mermaid chart content.
+ * @returns {string} - The generated HTML string.
+ */
 export function generateMermaidChartHtml(sobjectName: string, mermaidContent: string): string {
   return `
           <!DOCTYPE html>
@@ -120,6 +145,14 @@ export function generateMermaidChartHtml(sobjectName: string, mermaidContent: st
   `;
 }
 
+/**
+ * Generates a Mermaid chart for a given SObject and its relationships.
+ *
+ * @param {string} objectName - The name of the SObject.
+ * @param {Set<string>} standardObjects - A set of standard object names.
+ * @param {DescribeSObjectResult} describeSObjectResult - The result of the SObject describe call.
+ * @returns {string} - The generated Mermaid chart string.
+ */
 export function generateMermaidChart(
   objectName: string,
   standardObjects: Set<string>,
@@ -179,6 +212,13 @@ export function generateMermaidChart(
   return chart;
 }
 
+/**
+ * Generates a Lucidchart representation for a given SObject and its fields.
+ *
+ * @param {string} objectName - The name of the SObject.
+ * @param {ExtendedField[]} fields - The array of extended fields.
+ * @returns {string} - The generated Lucidchart string.
+ */
 export function generateLucidChart(objectName: string, fields: ExtendedField[]): string {
   let chart = '<html>' + '\n' + '<div>';
   let cpt = 0;
