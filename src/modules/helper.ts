@@ -29,6 +29,9 @@ export async function getStandardObjects(conn: Connection): Promise<Set<string>>
         !field.fileName.includes('__c') && // Exclude custom objects
         !field.fileName.includes('__hd') && // Exclude history objects
         !field.fileName.includes('__mdt') && // Exclude metadata objects
+        !field.fileName.includes('__x') && // Exclude external objects
+        !field.fileName.includes('__b') && // Exclude big objects
+        !field.fileName.includes('__e') && // Exclude event objects
         !field.namespacePrefix // Exclude namespaced fields
     )
     .forEach((field) => {

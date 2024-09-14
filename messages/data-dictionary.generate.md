@@ -10,6 +10,10 @@ By default, it will list all custom objects and all standard objects with at lea
 
 Generating data dictionary...
 
+# error.review.message
+
+Please review the object list, exclude potential not supported objects for api version %s and try again.
+
 # flags.name.summary
 
 Description of a flag.
@@ -73,3 +77,7 @@ It displays object list and more details in output.
 # flags.include-non-empty-objects.summary
 
 When set to true, ensures that only objects with a record count greater than 0 are included. By default, it is false, allowing all objects to be included regardless of their record count.
+
+# flags.exclude-objects.summary
+
+The Flag to specify the objects to exclude.

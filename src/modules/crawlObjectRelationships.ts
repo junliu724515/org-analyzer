@@ -57,7 +57,7 @@ export default class CrawlObjects {
     this.crawledObjectTypes.add(customObjectName);
     this.sobjectToTraverse.add(customObjectName);
 
-    // Do not traverse managed objects
+    // Do not traverse managed objects TODO: should we traverse managed objects with custom fields?
     if (this.managedObjects.has(customObjectName)) {
       return this.crawledObjectTypes;
     }

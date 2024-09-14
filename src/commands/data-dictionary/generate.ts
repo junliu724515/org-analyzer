@@ -65,6 +65,9 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     'include-non-empty-objects': Flags.boolean({
       summary: messages.getMessage('flags.include-non-empty-objects.summary'),
     }),
+    'exclude-objects': Flags.string({
+      summary: messages.getMessage('flags.exclude-objects.summary'),
+    }),
   };
 
   /**
@@ -92,6 +95,7 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       skipCharts: flags['skip-charts'],
       includeStdObjects: flags['include-std-objects'],
       includeNonEmptyObjects: flags['include-non-empty-objects'],
+      excludeObjects: flags['exclude-objects'],
     };
 
     // Start the spinner to indicate processing
@@ -111,6 +115,10 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     }
     // If the generation was not successful, log the error
     if (!result.success && result.error) {
+      this.log(messages.getMessage('error.review.message', [apiVersion]));
+      for (const object of result.objects?.values() ?? []) {
+        this.log(object);
+      }
       this.error(result.error);
     }
     // Return the result of the data dictionary generation

@@ -12,6 +12,7 @@ export type DictionaryBuilderOptions = {
   conn: Connection;
   excludeManagedPrefixes?: string;
   includeManagedPrefixes?: string;
+  excludeObjects?: string;
   sobjects?: string;
   dir?: string;
   startObject?: string;
@@ -91,6 +92,7 @@ export class DictionaryGenerator {
       return {
         success: false,
         error: result.error,
+        objects: objectSet,
       };
     }
     return {
@@ -116,6 +118,7 @@ export class DictionaryGenerator {
     const excludePrefixes = this.options.excludeManagedPrefixes?.split(',');
     const includePrefixes = this.options.includeManagedPrefixes?.split(',');
     const includeStdObjects = this.options.includeStdObjects?.split(',');
+    const excludeObjects = this.options.excludeObjects?.split(',');
 
     // If a start object is specified, crawl its relationships to identify objects
     if (this.options.startObject) {
@@ -165,6 +168,14 @@ export class DictionaryGenerator {
           customObjects.add(object.fullName);
         }
       }
+    }
+
+    // Filter out objects based on the exclude objects option
+    if (excludeObjects) {
+      excludeObjects.forEach((object) => {
+        customObjects.delete(object);
+        standardObjects.delete(object);
+      });
     }
 
     // Filter out objects with zero record count if specified

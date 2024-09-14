@@ -2525,7 +2525,7 @@ export const customObjectMetadata = {
       description: "Additional notes about the company's Matching Gift program.",
       inlineHelpText: "Additional notes about the company's matching gift program.",
       label: 'Matching Gift Comments',
-      length: 32768,
+      length: 32_768,
       trackHistory: false,
       type: 'LongTextArea',
       visibleLines: 3,
