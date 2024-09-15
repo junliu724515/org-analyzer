@@ -81,3 +81,11 @@ When set to true, ensures that only objects with a record count greater than 0 a
 # flags.exclude-objects.summary
 
 The Flag to specify the objects to exclude.
+
+# flags.app-api-name.summary
+
+It specifies the app from which all objects will be extracted.
+
+# flags.username.summary
+
+It specifies a username to get all objects that a given user can read from profile and permission set assignments.

@@ -68,6 +68,12 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     'exclude-objects': Flags.string({
       summary: messages.getMessage('flags.exclude-objects.summary'),
     }),
+    // 'app-api-name': Flags.string({
+    //   summary: messages.getMessage('flags.app-api-name.summary'),
+    // }),
+    username: Flags.string({
+      summary: messages.getMessage('flags.username.summary'),
+    }),
   };
 
   /**
@@ -96,6 +102,7 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       includeStdObjects: flags['include-std-objects'],
       includeNonEmptyObjects: flags['include-non-empty-objects'],
       excludeObjects: flags['exclude-objects'],
+      username: flags.username,
     };
 
     // Start the spinner to indicate processing

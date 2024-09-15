@@ -3,6 +3,7 @@ import CrawlObjects, { CrawlObjectsOptions } from './crawlObjectRelationships.js
 import { getStandardObjects } from './helper.js';
 import ExcelBuilder, { ExcelBuilderOptions } from './excelBuilder.js';
 import { getName } from './project.js';
+import UserObjectAccess, { UserObjectAccessOptions } from './UserObjectAccess.js';
 
 /**
  * Options for building the data dictionary.
@@ -20,6 +21,7 @@ export type DictionaryBuilderOptions = {
   skipCharts?: boolean;
   includeStdObjects?: string;
   includeNonEmptyObjects?: boolean;
+  username?: string;
 };
 
 /**
@@ -108,11 +110,8 @@ export class DictionaryGenerator {
    * @returns {Promise<Set<string>>} A set of object names.
    */
   private async identifyObjects(): Promise<Set<string>> {
-    // Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata .
-    const standardObjects = await getStandardObjects(this.options.conn);
-
     // Initialize a set to store custom objects
-    const customObjects = new Set<string>();
+    let customObjects = new Set<string>();
 
     // Split the exclude and include managed prefixes and standard objects into arrays
     const excludePrefixes = this.options.excludeManagedPrefixes?.split(',');
@@ -120,8 +119,19 @@ export class DictionaryGenerator {
     const includeStdObjects = this.options.includeStdObjects?.split(',');
     const excludeObjects = this.options.excludeObjects?.split(',');
 
+    if (this.options.username) {
+      const opts = {
+        conn: this.options.conn,
+        username: this.options.username,
+        includeManaged: this.options.includeManaged,
+        excludeManagedPrefixes: excludePrefixes,
+      } as UserObjectAccessOptions;
+
+      // add readable objects to the cusotmObjects set
+      customObjects = await new UserObjectAccess(opts).getReadableObjects();
+    }
     // If a start object is specified, crawl its relationships to identify objects
-    if (this.options.startObject) {
+    else if (this.options.startObject) {
       const opts = {
         conn: this.options.conn,
         startObject: this.options.startObject,
@@ -129,64 +139,65 @@ export class DictionaryGenerator {
       } as CrawlObjectsOptions;
 
       const objectList = await new CrawlObjects(opts).crawl();
-      return new Set(objectList);
+      customObjects = new Set(objectList);
     }
-
     // If specific sObjects are provided, return them as a set
-    if (this.options.sobjects) {
-      return new Set(this.options.sobjects.split(','));
+    else if (this.options.sobjects) {
+      customObjects = new Set(this.options.sobjects.split(','));
     }
+    // Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata .
+    else {
+      const standardObjects = await getStandardObjects(this.options.conn);
+      // Retrieve custom object metadata from Salesforce
+      const fileProperties = await this.options.conn.metadata.list({ type: 'CustomObject' });
+      if (fileProperties.length > 0) {
+        for (const object of fileProperties) {
+          const isCustomObject = object.fullName.includes('__c');
 
-    // Retrieve custom object metadata from Salesforce
-    const fileProperties = await this.options.conn.metadata.list({ type: 'CustomObject' });
-    if (fileProperties.length > 0) {
-      for (const object of fileProperties) {
-        const isCustomObject = object.fullName.includes('__c');
-
-        // Include objects based on managed prefixes
-        if (includePrefixes && object.namespacePrefix) {
-          if (includePrefixes.includes(object.namespacePrefix) && isCustomObject) {
-            customObjects.add(object.fullName);
-          }
-          continue;
-        }
-
-        // Exclude managed objects if not included
-        if (!this.options.includeManaged && object.namespacePrefix) {
-          continue;
-        }
-
-        // Exclude objects based on managed prefixes
-        if (this.options.includeManaged && excludePrefixes && object.namespacePrefix) {
-          if (excludePrefixes.includes(object.namespacePrefix)) {
+          // Include objects based on managed prefixes
+          if (includePrefixes && object.namespacePrefix) {
+            if (includePrefixes.includes(object.namespacePrefix) && isCustomObject) {
+              customObjects.add(object.fullName);
+            }
             continue;
           }
-        }
 
-        // Add custom objects to the set
-        if (isCustomObject) {
-          customObjects.add(object.fullName);
+          // Exclude managed objects if not included
+          if (!this.options.includeManaged && object.namespacePrefix) {
+            continue;
+          }
+
+          // Exclude objects based on managed prefixes
+          if (this.options.includeManaged && excludePrefixes && object.namespacePrefix) {
+            if (excludePrefixes.includes(object.namespacePrefix)) {
+              continue;
+            }
+          }
+
+          // Add custom objects to the set
+          if (isCustomObject) {
+            customObjects.add(object.fullName);
+          }
         }
       }
+      customObjects = new Set([...customObjects, ...standardObjects]);
     }
 
     // Filter out objects based on the exclude objects option
     if (excludeObjects) {
       excludeObjects.forEach((object) => {
         customObjects.delete(object);
-        standardObjects.delete(object);
       });
     }
 
     // Filter out objects with zero record count if specified
     if (this.options.includeNonEmptyObjects) {
-      const stdObjects = await this.filerOutZeroCountObjects(standardObjects);
       const custObjects = await this.filerOutZeroCountObjects(customObjects);
-      return new Set([...Array.from(stdObjects), ...Array.from(custObjects)]);
+      return new Set([...custObjects].sort());
     }
 
-    // Return the combined set of standard and custom objects
-    return new Set([...Array.from(standardObjects), ...Array.from(customObjects)]);
+    // Return the union of standard and custom objects
+    return new Set([...customObjects].sort());
   }
 
   /**

@@ -1,5 +1,5 @@
 import { Connection } from '@salesforce/core';
-import { CustomField } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
+import { CustomField, FileProperties } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 import { DescribeSObjectResult, Field } from '@jsforce/jsforce-node/lib/types/common.js';
 import { Optional } from '@jsforce/jsforce-node/lib/types/util.js';
 
@@ -48,6 +48,26 @@ export async function getStandardObjects(conn: Connection): Promise<Set<string>>
     });
 
   return standardObjects;
+}
+
+/**
+ * Retrieves a set of managed objects from the Salesforce metadata.
+ *
+ * @param {Connection} conn - The Salesforce connection object.
+ * @returns {Promise<Set<string>>} - A promise that resolves to a set of managed object names.
+ */
+export async function getManagedObjects(conn: Connection): Promise<Set<string>> {
+  const managedObjects = new Set<string>();
+
+  // Retrieve the list of custom objects from the Salesforce metadata
+  const objectList: FileProperties[] = await conn.metadata.list([{ type: 'CustomObject' }]);
+
+  // Filter and process the objects to extract managed object names
+  objectList
+    .filter((object) => object.namespacePrefix) // Include only managed objects
+    .forEach((object) => managedObjects.add(object.fullName)); // Add the full name of each managed object to the set
+
+  return managedObjects;
 }
 
 /**

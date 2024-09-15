@@ -1,5 +1,5 @@
 import { Connection } from '@salesforce/core';
-import { getStandardObjects } from './helper.js';
+import { getStandardObjects, getManagedObjects } from './helper.js';
 
 /**
  * Options for crawling Salesforce objects.
@@ -18,6 +18,7 @@ export default class CrawlObjects {
   private sobjectToTraverse: Set<string> = new Set<string>();
   private crawledObjectTypes: Set<string> = new Set<string>();
   private managedObjects: Set<string> = new Set<string>();
+  // private appObjects: Set<string> = new Set<string>();
   private opts: CrawlObjectsOptions;
 
   /**
@@ -36,8 +37,7 @@ export default class CrawlObjects {
    */
   public async crawl(): Promise<string[]> {
     // Retrieve the list of managed package objects from the Salesforce metadata
-    const objectList = await this.opts.conn.metadata.list([{ type: 'CustomObject' }]);
-    objectList.filter((object) => object.namespacePrefix).forEach((object) => this.managedObjects.add(object.fullName));
+    this.managedObjects = await getManagedObjects(this.opts.conn);
 
     // Retrieve the list of standard objects that have at least one custom field from the Salesforce metadata
     this.standardObjects = await getStandardObjects(this.opts.conn);
@@ -92,10 +92,10 @@ export default class CrawlObjects {
     const childRelationships = objectDescription.childRelationships;
     const fields = objectDescription.fields;
 
-    const sobjectToTraverse = new Set<string>();
+    const sobjectsToTraverse = new Set<string>();
 
     if (!objectDescription.custom && !this.opts.includedStdObjects?.includes(customObjectName)) {
-      return sobjectToTraverse;
+      return sobjectsToTraverse;
     }
 
     for (const field of fields) {
@@ -106,7 +106,7 @@ export default class CrawlObjects {
         field.referenceTo.length > 0 &&
         field.referenceTo[0] !== 'User'
       ) {
-        sobjectToTraverse.add(field.referenceTo[0]);
+        sobjectsToTraverse.add(field.referenceTo[0]);
       }
     }
 
@@ -115,10 +115,10 @@ export default class CrawlObjects {
         childRelationship.childSObject.includes('__c') ||
         (objectDescription.custom && this.standardObjects.has(childRelationship.childSObject))
       ) {
-        sobjectToTraverse.add(childRelationship.childSObject);
+        sobjectsToTraverse.add(childRelationship.childSObject);
       }
     }
 
-    return sobjectToTraverse;
+    return sobjectsToTraverse;
   }
 }
