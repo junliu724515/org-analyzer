@@ -10,6 +10,8 @@ import { DescribeSobjectResult } from '../../testdata/DescribeSobjectResult.js';
 import { CustomObjectFileProperties } from '../../testdata/CustomObjectFileProperties.js';
 import { CustomFieldFileProperties } from '../../testdata/CustomFieldFileProperties.js';
 import { customObjectMetadata } from '../../testdata/CustomObjectMetadata.js';
+import { UserInfoResult } from '../../testdata/UserInfo.js';
+import { permissionSetObjectPermissions } from '../../testdata/PermissionSetObjectPermissions.js';
 
 describe('data-dictionary generate', () => {
   const $$ = new TestContext();
@@ -41,6 +43,23 @@ describe('data-dictionary generate', () => {
             return DescribeSobjectResult;
           }
           return {};
+        },
+        query: async (soql: string) => {
+          if (soql.includes('FROM User')) {
+            return UserInfoResult;
+          }
+          if (soql.includes('FROM PermissionSet')) {
+            return {
+              records: [
+                {
+                  Id: '0PS5g000003MOb5GAG',
+                },
+              ],
+            };
+          }
+          if (soql.includes('FROM ObjectPermissions')) {
+            return permissionSetObjectPermissions;
+          }
         },
         // Mock any other methods or properties you need
         getAuthInfoFields: () => ({}),
@@ -127,6 +146,24 @@ describe('data-dictionary generate', () => {
     expect(getOrgStub.called).to.equal(true);
     // expect(result.objects).not.equal(undefined);
     expect(result.objects?.size).to.equal(1);
+    expect(output).to.include('success: true');
+  });
+
+  it('runs dictionary generation with username', async () => {
+    const result = await DataDictionaryGenerate.run([
+      '--api-version',
+      '61.0',
+      '--username',
+      'test@test.com',
+      '--output-time',
+    ]);
+    const output = sfCommandStubs.log
+      .getCalls()
+      .flatMap((c) => c.args)
+      .join('\n');
+    expect(getOrgStub.called).to.equal(true);
+    // expect(result.objects).not.equal(undefined);
+    expect(result.objects?.size).to.equal(2);
     expect(output).to.include('success: true');
   });
 });

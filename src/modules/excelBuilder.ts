@@ -804,7 +804,7 @@ export default class ExcelBuilder {
       }
 
       // Generate output Excel file
-      const fileName = this.opts.projectName + '-' + currentDateString + '.xlsx';
+      const fileName = this.opts.conn.getUsername() + '-' + currentDateString + '.xlsx';
       const outputFile = path.join(dirpath, fileName);
       wb.write(outputFile);
       return {

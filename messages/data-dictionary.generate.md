@@ -12,7 +12,15 @@ Generating data dictionary...
 
 # error.review.message
 
-Please review the object list, exclude potential not supported objects for api version %s and try again.
+Please review the object list, exclude potential not supported standard objects for api version %s and try again.
+
+# error.noUserFound
+
+User %s not found.
+
+# error.wrongProfile
+
+Please avoid using user %s with System Administrator profile
 
 # flags.name.summary
 
