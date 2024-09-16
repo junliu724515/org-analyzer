@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { Connection } from '@salesforce/core';
+import { Connection, Messages } from '@salesforce/core';
 import { Workbook, Worksheet } from 'excel4node';
 import { ValidationRule, CustomField, CustomObject } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 import { DescribeSObjectResult } from '@jsforce/jsforce-node/lib/types/common.js';
@@ -14,6 +14,9 @@ import {
   ExtendedField,
   generateLucidChart,
 } from './helper.js';
+
+Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
+const messages = Messages.loadMessages('org-analyzer', 'data-dictionary.generate');
 
 export type ExcelBuilderOptions = {
   conn: Connection;
@@ -284,18 +287,6 @@ export default class ExcelBuilder {
     return 3;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  // public mapFields(fields: CustomField[]): Map<string, CustomField> {
-  //   const fieldMap = new Map<string, CustomField>();
-  //   // use for of loop
-  //   for (const field of fields) {
-  //     if (field.fullName) {
-  //       fieldMap.set(field.fullName, field);
-  //     }
-  //   }
-  //   return fieldMap;
-  // }
-
   // eslint-disable-next-line complexity
   public writeFields(
     worksheet: Worksheet,
@@ -390,9 +381,6 @@ export default class ExcelBuilder {
             .style(rowStyle)
             .style(indentLeft);
         }
-
-        // tooling
-        // worksheet.cell(line, columnsKeys.indexOf('APIName') + 4).string(field.LastModifiedDate != null ? field.LastModifiedDate : '').style(global).style(rowStyle).style(indentLeft);
 
         // Type property
         let type = capitalize(field.type);
@@ -704,12 +692,23 @@ export default class ExcelBuilder {
         fs.mkdirSync(dirpath, { recursive: true });
       }
 
-      const describePromises = [];
-      const metadataPromises = [];
-      for (const object of sObjects) {
-        describePromises.push(this.opts.conn.describe(object));
-        metadataPromises.push(this.opts.conn.metadata.read('CustomObject', object));
-      }
+      const describePromises = sObjects.map((object) =>
+        this.opts.conn
+          .describe(object)
+          .then((result): DescribeSObjectResult => result)
+          .catch(() => {
+            throw Error(messages.getMessage('error.objectNotSupported', [object]));
+          })
+      );
+
+      const metadataPromises = sObjects.map((object) =>
+        this.opts.conn.metadata
+          .read('CustomObject', object)
+          .then((result): CustomObject => result)
+          .catch(() => {
+            throw Error(messages.getMessage('error.objectNotSupported', [object]));
+          })
+      );
       const describeSObjectResults = await Promise.all(describePromises);
       const metadataResults = await Promise.all(metadataPromises);
 
@@ -728,13 +727,8 @@ export default class ExcelBuilder {
       }
 
       for (const object of sObjects) {
-        // for (let i = 0; i < sObjects.length; i++) {
-        // const cur = i + 1;
-
         const worksheet = wb.addWorksheet(object);
         const line = this.createHeader(worksheet);
-        // const describePath = path.join(root, FILE_DIR, '/describe/' + sObjects[i] + '.json');
-        // const metadataPath = path.join(root, FILE_DIR, '/metadata/' + sObjects[i] + '.json');
         let fieldsMap = new Map<string, CustomField>();
 
         if (describeMap.get(object) !== undefined) {
@@ -802,7 +796,6 @@ export default class ExcelBuilder {
         // Lucidchart
         fs.writeFileSync(path.join(dirpath, 'lucidchart.txt'), chart, 'utf-8');
       }
-
       // Generate output Excel file
       const fileName = this.opts.conn.getUsername() + '-' + currentDateString + '.xlsx';
       const outputFile = path.join(dirpath, fileName);

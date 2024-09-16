@@ -18,9 +18,9 @@ Please review the object list, exclude potential not supported standard objects 
 
 User %s not found.
 
-# error.wrongProfile
+# error.objectNotSupported
 
-Please avoid using user %s with System Administrator profile
+SObject: %s is not supported, please use --exclude-objects flag (comma separated) skip it
 
 # flags.name.summary
 

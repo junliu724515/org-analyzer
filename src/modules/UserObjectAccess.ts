@@ -40,11 +40,6 @@ export default class UserObjectAccess {
 
     const user = userInfo.records[0] as Record;
     const profileId = user.ProfileId as string;
-    // const profile = user.Profile as Record;
-    // const profileName = profile.Name as string;
-    // if (profileName === 'System Administrator') {
-    //    throw new Error(messages.getMessage('error.wrongProfile', [this.opts.username]));
-    // }
 
     const profilePermSetIdRecord = await this.opts.conn.query(
       `SELECT Id FROM PermissionSet WHERE ProfileId = '${profileId}'`
@@ -64,21 +59,6 @@ export default class UserObjectAccess {
     }
     return this.filterManagedObjects(readableObjects);
   }
-
-  // private async addProfileObjectPermissions(readableObjects: Set<string>, profileId: string): Promise<void> {
-  //   const profileObjectPermissions = await this.opts.conn.query(`
-  //     SELECT SobjectType
-  //     FROM ObjectPermissions
-  //     WHERE ParentId = '${profileId}' AND PermissionsRead = true
-  //   `);
-  //
-  //   profileObjectPermissions.records.forEach((record) => {
-  //     const recordType = record.SobjectType as string;
-  //     if (recordType.endsWith('__c')|| this.standardObjects.has(recordType)) {
-  //     readableObjects.add(recordType);
-  //     }
-  //   });
-  // }
 
   private async addPermissionSetObjectPermissions(
     readableObjects: Set<string>,
