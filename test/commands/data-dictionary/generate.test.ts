@@ -92,7 +92,7 @@ describe('data-dictionary generate', () => {
     expect(getOrgStub.called).to.equal(true);
     // expect(result.objects).not.equal(undefined);
     expect(result.objects?.size).to.equal(3);
-    expect(output).to.include('success: true');
+    expect(output).to.include('Success: true');
   });
 
   it('runs dictionary generation with specifying objects', async () => {
@@ -109,7 +109,7 @@ describe('data-dictionary generate', () => {
       .join('\n');
     expect(getOrgStub.called).to.equal(true);
     expect(result.objects?.size).to.equal(2);
-    expect(output).to.include('success: true');
+    expect(output).to.include('Success: true');
   });
 
   it('runs dictionary generation with no standard object relationship crawling', async () => {
@@ -126,7 +126,7 @@ describe('data-dictionary generate', () => {
       .join('\n');
     expect(getOrgStub.called).to.equal(true);
     expect(result.objects?.size).to.equal(1);
-    expect(output).to.include('success: true');
+    expect(output).to.include('Success: true');
   });
 
   it('runs dictionary generation with standard object relationship crawling', async () => {
@@ -146,7 +146,7 @@ describe('data-dictionary generate', () => {
     expect(getOrgStub.called).to.equal(true);
     // expect(result.objects).not.equal(undefined);
     expect(result.objects?.size).to.equal(1);
-    expect(output).to.include('success: true');
+    expect(output).to.include('Success: true');
   });
 
   it('runs dictionary generation with username', async () => {
@@ -164,6 +164,6 @@ describe('data-dictionary generate', () => {
     expect(getOrgStub.called).to.equal(true);
     // expect(result.objects).not.equal(undefined);
     expect(result.objects?.size).to.equal(2);
-    expect(output).to.include('success: true');
+    expect(output).to.include('Success: true');
   });
 });
