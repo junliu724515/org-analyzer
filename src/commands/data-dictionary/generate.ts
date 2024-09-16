@@ -62,15 +62,12 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     verbose: Flags.boolean({
       summary: messages.getMessage('flags.verbose.summary'),
     }),
-    'include-non-empty-objects': Flags.boolean({
-      summary: messages.getMessage('flags.include-non-empty-objects.summary'),
+    'skip-empty-objects': Flags.boolean({
+      summary: messages.getMessage('flags.skip-empty-objects.summary'),
     }),
     'exclude-objects': Flags.string({
       summary: messages.getMessage('flags.exclude-objects.summary'),
     }),
-    // 'app-api-name': Flags.string({
-    //   summary: messages.getMessage('flags.app-api-name.summary'),
-    // }),
     username: Flags.string({
       summary: messages.getMessage('flags.username.summary'),
     }),
@@ -100,7 +97,7 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       outputTime: flags['output-time'],
       skipCharts: flags['skip-charts'],
       includeStdObjects: flags['include-std-objects'],
-      includeNonEmptyObjects: flags['include-non-empty-objects'],
+      skipEmptyObjects: flags['skip-empty-objects'],
       excludeObjects: flags['exclude-objects'],
       username: flags.username,
     };

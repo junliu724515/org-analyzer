@@ -20,7 +20,7 @@ export type DictionaryBuilderOptions = {
   outputTime?: boolean;
   skipCharts?: boolean;
   includeStdObjects?: string;
-  includeNonEmptyObjects?: boolean;
+  skipEmptyObjects?: boolean;
   username?: string;
 };
 
@@ -191,7 +191,7 @@ export class DictionaryGenerator {
     }
 
     // Filter out objects with zero record count if specified
-    if (this.options.includeNonEmptyObjects) {
+    if (this.options.skipEmptyObjects) {
       const custObjects = await this.filerOutZeroCountObjects(customObjects);
       return new Set([...custObjects].sort());
     }
