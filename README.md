@@ -2,82 +2,24 @@
 
 [![NPM](https://img.shields.io/npm/v/org-analyzer.svg?label=org-analyzer)](https://www.npmjs.com/package/org-analyzer) [![Downloads/week](https://img.shields.io/npm/dw/org-analyzer.svg)](https://npmjs.org/package/org-analyzer) [![License](https://img.shields.io/badge/License-BSD%203--Clause-brightgreen.svg)](https://raw.githubusercontent.com/salesforcecli/org-analyzer/main/LICENSE.txt)
 
-## Using the template
+## Description
 
-This repository provides a template for creating a plugin for the Salesforce CLI. To convert this template to a working plugin:
+Org-analyzer is a Salesforce CLI plugin designed to analyze and generate comprehensive data dictionaries for Salesforce orgs. By default, it extracts all custom objects and standard objects with custom fields. It offers the ability to filter objects based on user access through profiles and permission sets, as well as the capability to crawl object relationships. Additionally, the plugin generates Excel-based data dictionaries and creates Entity Relationship Diagram (ERD) charts.
 
-1. Please get in touch with the Platform CLI team. We want to help you develop your plugin.
-2. Generate your plugin:
+## Features
 
-   ```
-   sf plugins install dev
-   sf dev generate plugin
-
-   git init -b main
-   git add . && git commit -m "chore: initial commit"
-   ```
-
-3. Create your plugin's repo in the salesforcecli github org
-4. When you're ready, replace the contents of this README with the information you want.
-
-## Learn about `sf` plugins
-
-Salesforce CLI plugins are based on the [oclif plugin framework](<(https://oclif.io/docs/introduction.html)>). Read the [plugin developer guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_architecture_sf_cli.htm) to learn about Salesforce CLI plugin development.
-
-This repository contains a lot of additional scripts and tools to help with general Salesforce node development and enforce coding standards. You should familiarize yourself with some of the [node developer packages](#tooling) used by Salesforce.
-
-Additionally, there are some additional tests that the Salesforce CLI will enforce if this plugin is ever bundled with the CLI. These test are included by default under the `posttest` script and it is required to keep these tests active in your plugin if you plan to have it bundled.
-
-### Tooling
-
-- [@salesforce/core](https://github.com/forcedotcom/sfdx-core)
-- [@salesforce/kit](https://github.com/forcedotcom/kit)
-- [@salesforce/sf-plugins-core](https://github.com/salesforcecli/sf-plugins-core)
-- [@salesforce/ts-types](https://github.com/forcedotcom/ts-types)
-- [@salesforce/ts-sinon](https://github.com/forcedotcom/ts-sinon)
-- [@salesforce/dev-config](https://github.com/forcedotcom/dev-config)
-- [@salesforce/dev-scripts](https://github.com/forcedotcom/dev-scripts)
-
-### Hooks
-
-For cross clouds commands, e.g. `sf env list`, we utilize [oclif hooks](https://oclif.io/docs/hooks) to get the relevant information from installed plugins.
-
-This plugin includes sample hooks in the [src/hooks directory](src/hooks). You'll just need to add the appropriate logic. You can also delete any of the hooks if they aren't required for your plugin.
-
-# Everything past here is only a suggestion as to what should be in your specific plugin's description
-
-This plugin is bundled with the [Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli). For more information on the CLI, read the [getting started guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm).
-
-We always recommend using the latest version of these commands bundled with the CLI, however, you can install a specific version or tag if needed.
+- Analyzes and generates comprehensive data dictionaries for Salesforce orgs
+- Extracts all custom objects and standard objects with custom fields by default
+- Filters objects based on user access through profiles and permission sets
+- Crawls object relationships for detailed insights
+- Generates Excel-based data dictionaries for easy reference
+- Creates visual Entity Relationship Diagram (ERD) charts
 
 ## Install
 
 ```bash
 sf plugins install org-analyzer@x.y.z
 ```
-
-## Issues
-
-Please report any issues at https://github.com/forcedotcom/cli/issues
-
-## Contributing
-
-1. Please read our [Code of Conduct](CODE_OF_CONDUCT.md)
-2. Create a new issue before starting your project so that we can keep track of
-   what you are trying to add/fix. That way, we can also offer suggestions or
-   let you know if there is already an effort in progress.
-3. Fork this repository.
-4. [Build the plugin locally](#build)
-5. Create a _topic_ branch in your fork. Note, this step is recommended but technically not required if contributing using a fork.
-6. Edit the code in your fork.
-7. Write appropriate tests for your changes. Try to achieve at least 95% code coverage on any new code. No pull request will be accepted without unit tests.
-8. Sign CLA (see [CLA](#cla) below).
-9. Send us a pull request when you are done. We'll review your code, suggest any needed changes, and merge it in.
-
-### CLA
-
-External contributors will be required to sign a Contributor's License
-Agreement. You can do so by going to https://cla.salesforce.com/sign-cla.
 
 ### Build
 
@@ -95,7 +37,7 @@ To use your plugin, run using the local `./bin/dev` or `./bin/dev.cmd` file.
 
 ```bash
 # Run using local run file.
-./bin/dev hello world
+./bin/dev data-dictionary generate
 ```
 
 There should be no differences when running via the Salesforce CLI or using the local run file. However, it can be useful to link the plugin to do some additional testing or run your commands from anywhere on your machine.
@@ -111,35 +53,118 @@ sf plugins
 
 <!-- commands -->
 
-- [`sf hello world`](#sf-hello-world)
+- [`sf data-dictionary generate`](#sf-hello-world)
 
-## `sf hello world`
+## EXAMPLES
 
-Say hello either to the world or someone you know.
+Please note the following examples are using default target org and default output directory. please specify the target org and output directory using flags --target-org and --dir as needed.
+
+#### Generate a data dictionary for all custom objects and standard objects with custom fields in the target org:
+
+```
+$ sf data-dictionary generate
+```
+
+#### Generate a data dictionary that include managed packages in the target org:
+
+```
+#### Exlude specific objects from the data dictionary:
+```
+
+$ sf data-dictionary generate --exclude-objects <object1>,<object2>
+
+```
+$ sf data-dictionary generate --include-all-managed
+```
+
+#### Generate a data dictionary that include managed packages with specific prefixes in the target org:
+
+```
+$ sf data-dictionary generate --include-managed-prefixes <prefix1>,<prefix2>
+```
+
+#### Generate a data dictionary for objects specified in the target org:
+
+```
+$ sf data-dictionary generate --sobjects <object1>,<object2>
+```
+
+#### Generate a data dictionary for a user-specified list of objects in the target org:
+
+```
+$ sf data-dictionary generate --username <username>
+```
+
+#### Generate a data dictionary by crawling through object relationships starting from a specific object:
+
+```
+$ sf data-dictionary generate --start-object <object>
+```
+
+#### Generate a data dictionary without charts:
+
+```
+$ sf data-dictionary generate --skip-charts
+```
+
+#### Specify the batch size for processing SObjects:
+
+```
+$ sf data-dictionary generate --process-batch-size <batch-size>
+```
+
+#### Generate a data dictionary with verbose output:
+
+```
+$ sf data-dictionary generate --verbose
+```
 
 ```
 USAGE
-  $ sf hello world [--json] [-n <value>]
+  $ sf data-dictionary generate [--json] [--flags-dir <value>] [-m] [--api-version <value>] [-o <value>] [-x <value>] [-l <value>] [-s <value>] [-d <value>]
+    [--start-object <value>] [--output-time] [--skip-charts] [--include-std-objects <value>] [--verbose] [--skip-empty-objects] [--exclude-objects <value>]
+    [--username <value>] [--process-batch-size <value>]
 
 FLAGS
-  -n, --name=<value>  [default: World] The name of the person you'd like to say hello to.
+  -d, --dir=<value>                       Directory for saving outputs.
+  -l, --include-managed-prefixes=<value>  Specifies specific managed package prefixes (comma-separated) to include in the operation. This flag overrides the
+                                          --include-all-managed flag, ensuring only the specified managed packages are included. Default value is null.
+  -m, --include-all-managed               Specifies whether to include all managed package components. Default value is false.
+  -o, --target-org=<value>                Username or alias of the target org.
+  -s, --sobjects=<value>                  Specifies particular Salesforce objects (comma-separated) to include in the operation. This flag overrides the
+                                          --include-all-managed flag if used.
+  -x, --exclude-managed-prefixes=<value>  Specifies certain managed package prefixes (comma-separated) to exclude from the operation. This flag overrides the
+                                          --include-all-managed flag, removing the specified packages from the managed components being included. Default value is
+                                          null.
+      --api-version=<value>               Override the api version used for api requests made by this command
+      --exclude-objects=<value>           Specifies the objects to exclude.
+      --include-std-objects=<value>       Specifies a comma-separated list of standard objects to include in the crawl. By default, standard objects are not
+                                          crawled, but this flag makes exceptions for the specified objects to explore their relationships.
+      --output-time                       Controls the format of the appended timestamp in the output folder name. If set to true, both date and time are appended;
+                                          if false, only the date is appended.
+      --process-batch-size=<value>        [default: 100] Specifies the batch size to process SObjects. Default is 100.
+      --skip-charts                       Determines whether ERD charts are generated. If set to true, ERD charts and Lucidchart import files are not generated.
+      --skip-empty-objects                Ensures that only objects with a record count greater than 0 are included. Default value is false, allowing all objects to
+                                          be included regardless of their record count.
+      --start-object=<value>              Specifies the sObject to begin crawling through its relationships.
+      --username=<value>                  Specifies a username to retrieve all objects that a given user can read from profile and permission set assignments.
+      --verbose                           Displays object lists and more details in the output.
 
 GLOBAL FLAGS
-  --json  Format output as json.
+  --flags-dir=<value>  Import flag values from a directory.
+  --json               Format output as json.
 
 DESCRIPTION
-  Say hello either to the world or someone you know.
+  The data-dictionary feature enables automatic extraction and documentation of metadata from a Salesforce org, offering a detailed overview of objects, fields, and
+  their attributes, including data types, relationships, and descriptions.
 
-  Say hello either to the world or someone you know.
-
-EXAMPLES
-  Say hello to the world:
-
-    $ sf hello world
-
-  Say hello to someone you know:
-
-    $ sf hello world --name Astro
+  By default, it will list all custom objects and all standard objects with at least one custom field. Additionally, you can choose to include or exclude any
+  managed package objects. Above all, a very unique feature is the ability to crawl objects through their relationships, which is especially useful for an org split
+  use case to separate the data model among multiple apps.
 ```
+
+## License
+
+This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
 
 <!-- commandsstop -->
