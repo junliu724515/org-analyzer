@@ -113,26 +113,23 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     this.spinner.start(messages.getMessage('spinner.message'));
     // Generate the data dictionary
     const result = await new DictionaryGenerator(dictionaryBuilderOptions).build();
-    // Stop the spinner
     this.spinner.stop();
-    // Log the success message and output folder
-    this.log(`success: ${result.success}; outputFolder: ${result.outputFolder}`);
-    // If verbose flag is set, log additional details
-    if (flags.verbose) {
-      this.log(`result: ${result.objects?.size}`);
-      for (const object of result.objects?.values() ?? []) {
-        this.log(object);
-      }
-    }
-    // If the generation was not successful, log the error
+
     if (!result.success && result.error) {
       this.log(messages.getMessage('error.review.message', [apiVersion]));
-      for (const object of result.objects?.values() ?? []) {
-        this.log(object);
-      }
+      result.objects?.forEach((object) => this.log(object));
       this.error(result.error);
     }
-    // Return the result of the data dictionary generation
+
+    if (result.success && result.outputFolder) {
+      this.log(`Success: ${result.success}; Output folder: ${result.outputFolder}`);
+
+      if (flags.verbose) {
+        this.log(`Number of objects: ${result.objects?.size ?? 0}`);
+        result.objects?.forEach((object) => this.log(object));
+      }
+    }
+
     return {
       objects: result.objects,
       outputFolder: result.outputFolder,
