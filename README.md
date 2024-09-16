@@ -27,7 +27,7 @@ To build the plugin locally, make sure to have yarn installed and run the follow
 
 ```bash
 # Clone the repository
-git clone git@github.com:salesforcecli/org-analyzer
+git clone https://github.com/junliu724515/org-analyzer.git
 
 # Install the dependencies and compile
 yarn && yarn build
