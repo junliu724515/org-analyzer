@@ -52,102 +52,50 @@ sf plugins
 ## Commands
 
 <!-- commands -->
+* [`sf data-dictionary generate`](#sf-data-dictionary-generate)
 
-- [`sf data-dictionary generate`](#sf-hello-world)
+## `sf data-dictionary generate`
 
-## EXAMPLES
-
-Please note the following examples are using default target org and default output directory. please specify the target org and output directory using flags --target-org and --dir as needed.
-
-#### Generate a data dictionary for all custom objects and standard objects with custom fields in the target org:
-
-```
-$ sf data-dictionary generate
-```
-
-#### Generate a data dictionary that include managed packages in the target org:
-
-```
-#### Exlude specific objects from the data dictionary:
-```
-
-$ sf data-dictionary generate --exclude-objects <object1>,<object2>
-
-```
-$ sf data-dictionary generate --include-all-managed
-```
-
-#### Generate a data dictionary that include managed packages with specific prefixes in the target org:
-
-```
-$ sf data-dictionary generate --include-managed-prefixes <prefix1>,<prefix2>
-```
-
-#### Generate a data dictionary for objects specified in the target org:
-
-```
-$ sf data-dictionary generate --sobjects <object1>,<object2>
-```
-
-#### Generate a data dictionary for a user-specified list of objects in the target org:
-
-```
-$ sf data-dictionary generate --username <username>
-```
-
-#### Generate a data dictionary by crawling through object relationships starting from a specific object:
-
-```
-$ sf data-dictionary generate --start-object <object>
-```
-
-#### Generate a data dictionary without charts:
-
-```
-$ sf data-dictionary generate --skip-charts
-```
-
-#### Specify the batch size for processing SObjects:
-
-```
-$ sf data-dictionary generate --process-batch-size <batch-size>
-```
-
-#### Generate a data dictionary with verbose output:
-
-```
-$ sf data-dictionary generate --verbose
-```
+The data-dictionary feature enables automatic extraction and documentation of metadata from a Salesforce org, offering a detailed overview of objects, fields, and their attributes, including data types, relationships, and descriptions.
 
 ```
 USAGE
-  $ sf data-dictionary generate [--json] [--flags-dir <value>] [-m] [--api-version <value>] [-o <value>] [-x <value>] [-l <value>] [-s <value>] [-d <value>]
-    [--start-object <value>] [--output-time] [--skip-charts] [--include-std-objects <value>] [--verbose] [--skip-empty-objects] [--exclude-objects <value>]
-    [--username <value>] [--process-batch-size <value>]
+  $ sf data-dictionary generate [--json] [--flags-dir <value>] [-m] [--api-version <value>] [-o <value>] [-x <value>] [-l
+    <value>] [-s <value>] [-d <value>] [--start-object <value>] [--output-time] [--skip-charts] [--include-std-objects
+    <value>] [--verbose] [--skip-empty-objects] [--exclude-objects <value>] [--username <value>] [--process-batch-size
+    <value>]
 
 FLAGS
   -d, --dir=<value>                       Directory for saving outputs.
-  -l, --include-managed-prefixes=<value>  Specifies specific managed package prefixes (comma-separated) to include in the operation. This flag overrides the
-                                          --include-all-managed flag, ensuring only the specified managed packages are included. Default value is null.
-  -m, --include-all-managed               Specifies whether to include all managed package components. Default value is false.
+  -l, --include-managed-prefixes=<value>  Specifies specific managed package prefixes (comma-separated) to include in
+                                          the operation. This flag overrides the --include-all-managed flag, ensuring
+                                          only the specified managed packages are included. Default value is null.
+  -m, --include-all-managed               Specifies whether to include all managed package components. Default value is
+                                          false.
   -o, --target-org=<value>                Username or alias of the target org.
-  -s, --sobjects=<value>                  Specifies particular Salesforce objects (comma-separated) to include in the operation. This flag overrides the
-                                          --include-all-managed flag if used.
-  -x, --exclude-managed-prefixes=<value>  Specifies certain managed package prefixes (comma-separated) to exclude from the operation. This flag overrides the
-                                          --include-all-managed flag, removing the specified packages from the managed components being included. Default value is
-                                          null.
+  -s, --sobjects=<value>                  Specifies particular Salesforce objects (comma-separated) to include in the
+                                          operation. This flag overrides the --include-all-managed flag if used.
+  -x, --exclude-managed-prefixes=<value>  Specifies certain managed package prefixes (comma-separated) to exclude from
+                                          the operation. This flag overrides the --include-all-managed flag, removing
+                                          the specified packages from the managed components being included. Default
+                                          value is null.
       --api-version=<value>               Override the api version used for api requests made by this command
       --exclude-objects=<value>           Specifies the objects to exclude.
-      --include-std-objects=<value>       Specifies a comma-separated list of standard objects to include in the crawl. By default, standard objects are not
-                                          crawled, but this flag makes exceptions for the specified objects to explore their relationships.
-      --output-time                       Controls the format of the appended timestamp in the output folder name. If set to true, both date and time are appended;
-                                          if false, only the date is appended.
+      --include-std-objects=<value>       Specifies a comma-separated list of standard objects to include in the crawl.
+                                          By default, standard objects are not crawled, but this flag makes exceptions
+                                          for the specified objects to explore their relationships.
+      --output-time                       Controls the format of the appended timestamp in the output folder name. If
+                                          set to true, both date and time are appended; if false, only the date is
+                                          appended.
       --process-batch-size=<value>        [default: 100] Specifies the batch size to process SObjects. Default is 100.
-      --skip-charts                       Determines whether ERD charts are generated. If set to true, ERD charts and Lucidchart import files are not generated.
-      --skip-empty-objects                Ensures that only objects with a record count greater than 0 are included. Default value is false, allowing all objects to
-                                          be included regardless of their record count.
+      --skip-charts                       Determines whether ERD charts are generated. If set to true, ERD charts and
+                                          Lucidchart import files are not generated.
+      --skip-empty-objects                Ensures that only objects with a record count greater than 0 are included.
+                                          Default value is false, allowing all objects to be included regardless of
+                                          their record count.
       --start-object=<value>              Specifies the sObject to begin crawling through its relationships.
-      --username=<value>                  Specifies a username to retrieve all objects that a given user can read from profile and permission set assignments.
+      --username=<value>                  Specifies a username to retrieve all objects that a given user can read from
+                                          profile and permission set assignments.
       --verbose                           Displays object lists and more details in the output.
 
 GLOBAL FLAGS
@@ -155,16 +103,15 @@ GLOBAL FLAGS
   --json               Format output as json.
 
 DESCRIPTION
-  The data-dictionary feature enables automatic extraction and documentation of metadata from a Salesforce org, offering a detailed overview of objects, fields, and
-  their attributes, including data types, relationships, and descriptions.
+  The data-dictionary feature enables automatic extraction and documentation of metadata from a Salesforce org, offering
+  a detailed overview of objects, fields, and their attributes, including data types, relationships, and descriptions.
 
-  By default, it will list all custom objects and all standard objects with at least one custom field. Additionally, you can choose to include or exclude any
-  managed package objects. Above all, a very unique feature is the ability to crawl objects through their relationships, which is especially useful for an org split
-  use case to separate the data model among multiple apps.
+  By default, it will list all custom objects and all standard objects with at least one custom field. Additionally, you
+  can choose to include or exclude any managed package objects. Above all, a very unique feature is the ability to crawl
+  objects through their relationships, which is especially useful for an org split use case to separate the data model
+  among multiple apps.
+
+EXAMPLES
+  $ sf data-dictionary generate
 ```
-
-## License
-
-This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
-
 <!-- commandsstop -->
