@@ -20,7 +20,7 @@ User %s not found.
 
 # error.objectNotSupported
 
-SObject: %s is not supported, please use --exclude-objects flag (comma separated) skip it
+Error when processing SObject: %s. Please reduce the batch size using the --process-batch-size flag (default value is 100), or use the --exclude-objects flag (comma-separated) to skip it.
 
 # flags.name.summary
 
@@ -93,3 +93,7 @@ Specifies the objects to exclude.
 # flags.username.summary
 
 Specifies a username to retrieve all objects that a given user can read from profile and permission set assignments.
+
+# flags.process-batch-size.summary
+
+Specifies the batch size to process SObjects. Default is 100.

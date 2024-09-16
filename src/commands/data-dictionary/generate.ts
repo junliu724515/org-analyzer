@@ -71,6 +71,12 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
     username: Flags.string({
       summary: messages.getMessage('flags.username.summary'),
     }),
+    'process-batch-size': Flags.integer({
+      summary: messages.getMessage('flags.process-batch-size.summary'),
+      min: 5,
+      max: 500,
+      default: 100,
+    }),
   };
 
   /**
@@ -100,6 +106,7 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       skipEmptyObjects: flags['skip-empty-objects'],
       excludeObjects: flags['exclude-objects'],
       username: flags.username,
+      batchSize: flags['process-batch-size'],
     };
 
     // Start the spinner to indicate processing

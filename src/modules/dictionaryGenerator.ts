@@ -22,6 +22,7 @@ export type DictionaryBuilderOptions = {
   includeStdObjects?: string;
   skipEmptyObjects?: boolean;
   username?: string;
+  batchSize: number;
 };
 
 /**
@@ -85,6 +86,7 @@ export class DictionaryGenerator {
       output: this.options.dir ? this.options.dir : '.',
       projectName,
       generateCharts: !this.options.skipCharts,
+      batchSize: this.options.batchSize,
     };
 
     const excelBuilder = new ExcelBuilder(excelBuilderOptions);

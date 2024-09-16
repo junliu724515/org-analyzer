@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { Connection, Messages } from '@salesforce/core';
+import { Connection, Messages, Logger } from '@salesforce/core';
 import { Workbook, Worksheet } from 'excel4node';
 import { ValidationRule, CustomField, CustomObject } from '@jsforce/jsforce-node/lib/api/metadata/schema.js';
 import { DescribeSObjectResult } from '@jsforce/jsforce-node/lib/types/common.js';
@@ -13,10 +13,13 @@ import {
   getStandardObjects,
   ExtendedField,
   generateLucidChart,
+  batchProcess,
 } from './helper.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('org-analyzer', 'data-dictionary.generate');
+
+const log = await Logger.child('ExcelBuilder');
 
 export type ExcelBuilderOptions = {
   conn: Connection;
@@ -28,8 +31,7 @@ export type ExcelBuilderOptions = {
   output: string;
   projectName: string;
   generateCharts: boolean;
-  // lucidchart: boolean;
-  // mermaidChart: boolean;
+  batchSize: number;
 };
 
 export type ExcelBuilderResult = {
@@ -692,25 +694,25 @@ export default class ExcelBuilder {
         fs.mkdirSync(dirpath, { recursive: true });
       }
 
-      const describePromises = sObjects.map((object) =>
+      const describeSObjectResults = await batchProcess(sObjects, this.opts.batchSize, (object) =>
         this.opts.conn
           .describe(object)
           .then((result): DescribeSObjectResult => result)
-          .catch(() => {
+          .catch((err: Error) => {
+            log.error(err);
             throw Error(messages.getMessage('error.objectNotSupported', [object]));
           })
       );
 
-      const metadataPromises = sObjects.map((object) =>
+      const metadataResults = await batchProcess(sObjects, this.opts.batchSize, (object) =>
         this.opts.conn.metadata
           .read('CustomObject', object)
           .then((result): CustomObject => result)
-          .catch(() => {
+          .catch((err: Error) => {
+            log.error(err);
             throw Error(messages.getMessage('error.objectNotSupported', [object]));
           })
       );
-      const describeSObjectResults = await Promise.all(describePromises);
-      const metadataResults = await Promise.all(metadataPromises);
 
       // Create maps for storing results
       const describeMap = new Map<string, DescribeSObjectResult>(); // Map with `name` as key

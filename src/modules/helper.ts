@@ -331,3 +331,41 @@ export function generateLucidChart(objectName: string, fields: ExtendedField[]):
   chart += '</div>' + '\n' + '</html>';
   return chart;
 }
+
+/**
+ * Processes an array of items in batches, applying an asynchronous function to each item.
+ *
+ * @template T - The type of the items being processed.
+ * @param {string[]} items - The array of items to be processed.
+ * @param {number} batchSize - The number of items to process in each batch.
+ * @param {(item: string) => Promise<T>} processFn - The asynchronous function to apply to each item.
+ * @returns {Promise<T[]>} - A promise that resolves to an array of results from the processed items.
+ */
+export async function batchProcess<T>(
+  items: string[],
+  batchSize: number,
+  processFn: (item: string) => Promise<T>
+): Promise<T[]> {
+  /**
+   * Processes a single batch of items.
+   *
+   * @param {string[]} batch - The batch of items to be processed.
+   * @returns {Promise<T[]>} - A promise that resolves to an array of results from the processed batch.
+   */
+  const processBatch = (batch: string[]): Promise<T[]> => Promise.all(batch.map(processFn));
+
+  // Split the items into batches
+  const batches = Array.from({ length: Math.ceil(items.length / batchSize) }, (_, i) =>
+    items.slice(i * batchSize, (i + 1) * batchSize)
+  );
+
+  // Process each batch sequentially and accumulate the results
+  return batches.reduce(
+    (acc: Promise<T[]>, batch: string[]) =>
+      acc.then(async (results) => {
+        const batchResults = await processBatch(batch);
+        return [...results, ...batchResults];
+      }),
+    Promise.resolve([] as T[])
+  );
+}
