@@ -42,6 +42,7 @@ export default class CrawlObjects {
     // Retrieve the list of standard objects that have at least one custom field from the Salesforce metadata
     this.standardObjects = await getStandardObjects(this.opts.conn);
 
+    // Traverse the starting object and get the list of custom object names
     const customObjectNames = await this.traverseObject(this.opts.startObject);
     // Sort custom object names in alphabetical order
     return Array.from(customObjectNames).sort();
@@ -54,7 +55,9 @@ export default class CrawlObjects {
    * @returns {Promise<Set<string>>} - A promise that resolves to a set of crawled object types.
    */
   public async traverseObject(customObjectName: string): Promise<Set<string>> {
+    // Add the custom object to the set of crawled object types
     this.crawledObjectTypes.add(customObjectName);
+    // Add the custom object to the set of objects to traverse
     this.sobjectToTraverse.add(customObjectName);
 
     // Do not traverse managed objects
@@ -62,6 +65,7 @@ export default class CrawlObjects {
       return this.crawledObjectTypes;
     }
 
+    // Retrieve the dependencies of the custom object
     const childRelationships = await this.retrieveSobjectDependencies(customObjectName);
     for (const childRelationship of this.sobjectToTraverse) {
       // Remove the object already traversed
@@ -88,16 +92,19 @@ export default class CrawlObjects {
    * @returns {Promise<Set<string>>} - A promise that resolves to a set of dependent object names.
    */
   private async retrieveSobjectDependencies(customObjectName: string): Promise<Set<string>> {
+    // Describe the custom object to get its metadata
     const objectDescription = await this.opts.conn.describe(customObjectName);
     const childRelationships = objectDescription.childRelationships;
     const fields = objectDescription.fields;
 
     const sobjectsToTraverse = new Set<string>();
 
+    // Check if the object is custom or included in the standard objects
     if (!objectDescription.custom && !this.opts.includedStdObjects?.includes(customObjectName)) {
       return sobjectsToTraverse;
     }
 
+    // Add referenced objects to the set of objects to traverse
     for (const field of fields) {
       if (
         field.type === 'reference' &&
@@ -110,6 +117,7 @@ export default class CrawlObjects {
       }
     }
 
+    // Add child relationships to the set of objects to traverse
     for (const childRelationship of childRelationships) {
       if (
         childRelationship.childSObject.includes('__c') ||

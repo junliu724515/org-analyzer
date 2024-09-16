@@ -659,27 +659,36 @@ export default class ExcelBuilder {
     }
   }
 
+  /**
+   * Generates an Excel data dictionary for Salesforce objects.
+   *
+   * @returns {Promise<ExcelBuilderResult>} - A promise that resolves to the result of the Excel generation.
+   */
   // eslint-disable-next-line complexity
   public async generate(): Promise<ExcelBuilderResult> {
     try {
-      // this.logger('Generating...');
+      // Retrieve the list of Salesforce objects to process
       const sObjects = this.opts.objects;
+      // Retrieve the list of standard objects from Salesforce
       const standardObjects = await getStandardObjects(this.opts.conn);
       let chart: string = '';
 
-      // Generate output Excel file
+      // Generate the current date string for the output file
       const currentDate = new Date(Date.now());
       let currentDateString = currentDate.toISOString();
       if (this.opts.outputTime) {
+        // Format the date string to include time
         currentDateString = currentDateString.replace('T', '_').replace('Z', '').replace(/:/g, '_').replace('.', '_');
       } else {
+        // Format the date string without time
         currentDateString = currentDateString.substring(0, currentDateString.indexOf('T'));
       }
 
+      // Define the directory path for the output files
       const dirpath = path.join(this.opts.output, 'DataDictionary' + '-' + currentDateString);
 
       if (fs.existsSync(dirpath)) {
-        // remove the files and directories in the folder
+        // Remove the existing directory and its contents if it exists
         fs.rm(dirpath, { recursive: true, force: true }, (err) => {
           if (err) {
             return {
@@ -687,13 +696,16 @@ export default class ExcelBuilder {
               error: err as Error,
             };
           } else {
+            // Create a new directory
             fs.mkdirSync(dirpath, { recursive: true });
           }
         });
       } else {
+        // Create a new directory
         fs.mkdirSync(dirpath, { recursive: true });
       }
 
+      // Describe the Salesforce objects in batches
       const describeSObjectResults = await batchProcess(sObjects, this.opts.batchSize, (object) =>
         this.opts.conn
           .describe(object)
@@ -704,6 +716,7 @@ export default class ExcelBuilder {
           })
       );
 
+      // Read the metadata for the Salesforce objects in batches
       const metadataResults = await batchProcess(sObjects, this.opts.batchSize, (object) =>
         this.opts.conn.metadata
           .read('CustomObject', object)
@@ -714,35 +727,43 @@ export default class ExcelBuilder {
           })
       );
 
-      // Create maps for storing results
+      // Create maps for storing the describe and metadata results
       const describeMap = new Map<string, DescribeSObjectResult>(); // Map with `name` as key
       const metadataMap = new Map<string, CustomObject>(); // Map with `fullName` as key
 
+      // Populate the describe map
       for (const describeSObjectResult of describeSObjectResults) {
         describeMap.set(describeSObjectResult.name, describeSObjectResult);
       }
 
+      // Populate the metadata map
       for (const metadataResult of metadataResults) {
         if (metadataResult.fullName) {
           metadataMap.set(metadataResult.fullName, metadataResult);
         }
       }
 
+      // Process each Salesforce object
       for (const object of sObjects) {
+        // Add a new worksheet for the object
         const worksheet = wb.addWorksheet(object);
+        // Create the header for the worksheet
         const line = this.createHeader(worksheet);
         let fieldsMap = new Map<string, CustomField>();
 
         if (describeMap.get(object) !== undefined) {
+          // Retrieve the fields from the describe result
           const currentObjectFieldsDescribe = describeMap.get(object)?.fields as ExtendedField[];
           let currentObjectFieldsMetadata;
           if (metadataMap.get(object) !== undefined) {
+            // Retrieve the fields from the metadata result
             currentObjectFieldsMetadata = metadataMap.get(object);
             if (currentObjectFieldsMetadata?.fields != null) {
               fieldsMap = mapFields(currentObjectFieldsMetadata.fields);
             }
           }
 
+          // Map the metadata fields to the describe fields
           for (const field of currentObjectFieldsDescribe) {
             const fieldName = field.name;
 
@@ -763,7 +784,8 @@ export default class ExcelBuilder {
               }
             }
           }
-          // currentObjectFieldsDescribe.sort(Utils.sortByTwoProperty('custom', 'name'));
+
+          // Write the fields to the worksheet
           if (currentObjectFieldsMetadata) {
             this.writeFields(
               worksheet,
@@ -772,6 +794,8 @@ export default class ExcelBuilder {
               currentObjectFieldsMetadata?.validationRules
             );
           }
+
+          // Generate charts if the option is enabled
           if (this.opts.generateCharts) {
             const mermaidChart = generateMermaidChart(
               object,
@@ -786,27 +810,31 @@ export default class ExcelBuilder {
             const filePath = path.join(chartDirpath, object + '.html');
             fs.writeFileSync(filePath, chartContent, 'utf-8');
 
-            // luicdchart
+            // Generate Lucidchart content
             chart += generateLucidChart(object, currentObjectFieldsDescribe);
           }
         }
       }
 
+      // Generate the list page and Lucidchart file if charts are enabled
       if (this.opts.generateCharts) {
         const chartContent = generateSObjectListPage(sObjects);
         fs.writeFileSync(path.join(dirpath, 'ERDObjectList.html'), chartContent, 'utf-8');
-        // Lucidchart
         fs.writeFileSync(path.join(dirpath, 'lucidchart.txt'), chart, 'utf-8');
       }
-      // Generate output Excel file
+
+      // Generate the output Excel file
       const fileName = this.opts.conn.getUsername() + '-' + currentDateString + '.xlsx';
       const outputFile = path.join(dirpath, fileName);
       wb.write(outputFile);
+
+      // Return success result
       return {
         success: true,
         outputFolder: dirpath,
       };
     } catch (error) {
+      // Return error result
       return {
         success: false,
         error: error as Error,

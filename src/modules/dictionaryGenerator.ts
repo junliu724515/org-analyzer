@@ -121,6 +121,7 @@ export class DictionaryGenerator {
     const includeStdObjects = this.options.includeStdObjects?.split(',');
     const excludeObjects = this.options.excludeObjects?.split(',');
 
+    // Check if username is provided for user object access
     if (this.options.username) {
       const opts = {
         conn: this.options.conn,
@@ -129,7 +130,7 @@ export class DictionaryGenerator {
         excludeManagedPrefixes: excludePrefixes,
       } as UserObjectAccessOptions;
 
-      // add readable objects to the cusotmObjects set
+      // Add readable objects to the customObjects set
       customObjects = await new UserObjectAccess(opts).getReadableObjects();
     }
     // If a start object is specified, crawl its relationships to identify objects
@@ -140,6 +141,7 @@ export class DictionaryGenerator {
         includedStdObjects: includeStdObjects,
       } as CrawlObjectsOptions;
 
+      // Crawl the object relationships and add to customObjects set
       const objectList = await new CrawlObjects(opts).crawl();
       customObjects = new Set(objectList);
     }
@@ -147,7 +149,7 @@ export class DictionaryGenerator {
     else if (this.options.sobjects) {
       customObjects = new Set(this.options.sobjects.split(','));
     }
-    // Retrieves a set of standard objects that have at least one custom field from the Salesforce metadata .
+    // Retrieve a set of standard objects that have at least one custom field from the Salesforce metadata
     else {
       const standardObjects = await getStandardObjects(this.options.conn);
       // Retrieve custom object metadata from Salesforce
@@ -182,6 +184,7 @@ export class DictionaryGenerator {
           }
         }
       }
+      // Combine standard and custom objects into customObjects set
       customObjects = new Set([...customObjects, ...standardObjects]);
     }
 
