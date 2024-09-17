@@ -1,10 +1,12 @@
 # org-analyzer
 
-[![NPM](https://img.shields.io/npm/v/org-analyzer.svg?label=org-analyzer)](https://www.npmjs.com/package/org-analyzer) [![Downloads/week](https://img.shields.io/npm/dw/org-analyzer.svg)](https://npmjs.org/package/org-analyzer) [![License](https://img.shields.io/badge/License-BSD%203--Clause-brightgreen.svg)](https://raw.githubusercontent.com/salesforcecli/org-analyzer/main/LICENSE.txt)
+[![CI/CD Pipeline](https://github.com/junliu724515/org-analyzer/actions/workflows/create-github-release.yml/badge.svg)](https://github.com/junliu724515/org-analyzer/actions/workflows/create-github-release.yml) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/junliu724515/org-analyzer.svg?include_prereleases) ![CI/CD Pipeline](https://github.com/junliu724515/org-analyzer/actions/workflows/onRelease.yml/badge.svg) [![NPM](https://img.shields.io/npm/v/org-analyzer.svg?label=org-analyzer)](https://www.npmjs.com/package/org-analyzer) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/salesforcecli/org-analyzer/main/LICENSE.txt)
+
+[//]: # '[![Downloads/week](https://img.shields.io/npm/dw/org-analyzer.svg)](https://npmjs.org/package/org-analyzer)'
 
 ## Description
 
-Org-analyzer is a Salesforce CLI plugin designed to analyze and generate comprehensive data dictionaries for Salesforce orgs. By default, it extracts all custom objects and standard objects with custom fields. It offers the ability to filter objects based on user access through profiles and permission sets, as well as the capability to crawl object relationships. Additionally, the plugin generates Excel-based data dictionaries and creates Entity Relationship Diagram (ERD) charts.
+Org-analyzer is a Salesforce CLI plugin designed to analyze and generate comprehensive data dictionaries for Salesforce orgs. By default, it extracts all custom objects and standard objects with custom fields. It offers the ability to filter objects based on user access through profiles and permission sets, as well as the capability to crawl object relationships. Additionally, the plugin generates Excel-based data dictionaries and creates Entity Relationship Diagram (ERD) charts. For the Excel file generation, I reused code from the project [sfdc-generate-data-dictionary](https://github.com/gavignon/sfdc-generate-data-dictionary),
 
 ## Features
 
@@ -52,7 +54,8 @@ sf plugins
 ## Commands
 
 <!-- commands -->
-* [`sf data-dictionary generate`](#sf-data-dictionary-generate)
+
+- [`sf data-dictionary generate`](#sf-data-dictionary-generate)
 
 ## `sf data-dictionary generate`
 
@@ -112,6 +115,51 @@ DESCRIPTION
   among multiple apps.
 
 EXAMPLES
-  $ sf data-dictionary generate
+
+  - Generate a data dictionary for all custom objects and standard objects with custom fields in the target org:
+
+    $ sf data-dictionary generate
+
+  - Generate a data dictionary for all custom objects and standard objects with custom fields in the target org and save
+    the output to a specific directory:
+
+    $ sf data-dictionary generate --dir <directory>
+
+  - Generate a data dictionary for all custom objects and standard objects with custom fields in the specified target org:
+
+    $ sf data-dictionary generate --target-org <username>
+
+  - Generate a data dictionary that include managed packages in the target org:
+
+    $ sf data-dictionary generate --include-all-managed
+
+  - Generate a data dictionary that include managed packages with specific prefixes in the target org:
+
+    $ sf data-dictionary generate --include-managed-prefixes <prefix1>,<prefix2>
+
+  - Generate a data dictionary for objects specified in the target org:
+
+    $ sf data-dictionary generate --sobjects <object1>,<object2>
+
+  - Generate a data dictionary for a user-specified list of objects in the target org:
+
+    $ sf data-dictionary generate --username <username>
+
+  - Generate a data dictionary by crawling through object relationships starting from a specific object:
+
+    $ sf data-dictionary generate --start-object <object>
+
+  - Generate a data dictionary without charts:
+
+    $ sf data-dictionary generate --skip-charts
+
+  - Specify the batch size for processing SObjects:
+
+    $ sf data-dictionary generate --process-batch-size <batch-size>
+
+  - Generate a data dictionary with verbose output:
+
+    $ sf data-dictionary generate --verbose
 ```
+
 <!-- commandsstop -->
