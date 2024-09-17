@@ -1,3 +1,12 @@
+## [1.1.3](https://github.com/junliu724515/org-analyzer/compare/1.1.2...1.1.3) (2024-09-17)
+
+
+### Bug Fixes
+
+* update README with more examples ([4feb914](https://github.com/junliu724515/org-analyzer/commit/4feb91463486f700f958642a2c022bb75099640c))
+
+
+
 ## [1.1.2](https://github.com/junliu724515/org-analyzer/compare/1.1.1...1.1.2) (2024-09-17)
 
 

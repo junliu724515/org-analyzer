@@ -99,8 +99,7 @@ sf plugins
 ## Commands
 
 <!-- commands -->
-
-- [`sf data-dictionary generate`](#sf-data-dictionary-generate)
+* [`sf data-dictionary generate`](#sf-data-dictionary-generate)
 
 ## `sf data-dictionary generate`
 
@@ -162,5 +161,4 @@ DESCRIPTION
 EXAMPLES
   $ sf data-dictionary generate
 ```
-
 <!-- commandsstop -->
