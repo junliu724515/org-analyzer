@@ -1,3 +1,12 @@
+## [1.1.2](https://github.com/junliu724515/org-analyzer/compare/1.1.1...1.1.2) (2024-09-17)
+
+
+### Bug Fixes
+
+* fix licence and update README ([6ee86ec](https://github.com/junliu724515/org-analyzer/commit/6ee86ec2dc7969c51c82a6ca360d438aa1af0f10))
+
+
+
 ## [1.1.1](https://github.com/junliu724515/org-analyzer/compare/1.1.0...1.1.1) (2024-09-17)
 
 
