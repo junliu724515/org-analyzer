@@ -54,8 +54,7 @@ sf plugins
 ## Commands
 
 <!-- commands -->
-
-- [`sf data-dictionary generate`](#sf-data-dictionary-generate)
+* [`sf data-dictionary generate`](#sf-data-dictionary-generate)
 
 ## `sf data-dictionary generate`
 
@@ -115,51 +114,6 @@ DESCRIPTION
   among multiple apps.
 
 EXAMPLES
-
-  - Generate a data dictionary for all custom objects and standard objects with custom fields in the target org:
-
-    $ sf data-dictionary generate
-
-  - Generate a data dictionary for all custom objects and standard objects with custom fields in the target org and save
-    the output to a specific directory:
-
-    $ sf data-dictionary generate --dir <directory>
-
-  - Generate a data dictionary for all custom objects and standard objects with custom fields in the specified target org:
-
-    $ sf data-dictionary generate --target-org <username>
-
-  - Generate a data dictionary that include managed packages in the target org:
-
-    $ sf data-dictionary generate --include-all-managed
-
-  - Generate a data dictionary that include managed packages with specific prefixes in the target org:
-
-    $ sf data-dictionary generate --include-managed-prefixes <prefix1>,<prefix2>
-
-  - Generate a data dictionary for objects specified in the target org:
-
-    $ sf data-dictionary generate --sobjects <object1>,<object2>
-
-  - Generate a data dictionary for a user-specified list of objects in the target org:
-
-    $ sf data-dictionary generate --username <username>
-
-  - Generate a data dictionary by crawling through object relationships starting from a specific object:
-
-    $ sf data-dictionary generate --start-object <object>
-
-  - Generate a data dictionary without charts:
-
-    $ sf data-dictionary generate --skip-charts
-
-  - Specify the batch size for processing SObjects:
-
-    $ sf data-dictionary generate --process-batch-size <batch-size>
-
-  - Generate a data dictionary with verbose output:
-
-    $ sf data-dictionary generate --verbose
+  $ sf data-dictionary generate
 ```
-
 <!-- commandsstop -->

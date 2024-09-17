@@ -1,4 +1,13 @@
-# 1.1.0 (2024-09-16)
+## [1.1.1](https://github.com/junliu724515/org-analyzer/compare/1.1.0...1.1.1) (2024-09-17)
+
+
+### Bug Fixes
+
+* remove post install yarn call ([9f62bdd](https://github.com/junliu724515/org-analyzer/commit/9f62bdddc6ea311065dc99d537333f43cd4ab268))
+
+
+
+# [1.1.0](https://github.com/junliu724515/org-analyzer/compare/d48d028cb06d70147ad6a65615d59c10c96ffb46...1.1.0) (2024-09-16)
 
 
 ### Bug Fixes
