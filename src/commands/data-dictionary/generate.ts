@@ -14,17 +14,10 @@ export type DataDictionaryGenerateResult = {
   outputFolder?: string;
 };
 
-/**
- * Command to generate a data dictionary.
- */
-export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGenerateResult> {
-  // Command summary, description, and examples
-  public static readonly summary = messages.getMessage('summary');
-  public static readonly description = messages.getMessage('description');
-  public static readonly examples = messages.getMessages('examples');
-
-  // Define the flags for the command
-  public static readonly flags = {
+// Define flags separately to avoid type inference issues with nested dependencies
+// Type assertion needed due to nested dependency type references
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+const commandFlags = {
     'include-all-managed': Flags.boolean({
       summary: messages.getMessage('flags.include-all-managed.summary'),
       char: 'm',
@@ -77,7 +70,21 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
       max: 500,
       default: 100,
     }),
-  };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
+
+/**
+ * Command to generate a data dictionary.
+ */
+export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGenerateResult> {
+  // Command summary, description, and examples
+  public static readonly summary = messages.getMessage('summary');
+  public static readonly description = messages.getMessage('description');
+  public static readonly examples = messages.getMessages('examples');
+
+  // Define the flags for the command
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  public static readonly flags: typeof commandFlags = commandFlags;
 
   /**
    * Executes the command to generate a data dictionary.
@@ -87,25 +94,41 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
   public async run(): Promise<DataDictionaryGenerateResult> {
     // Parse the flags provided by the user
     const { flags } = await this.parse(DataDictionaryGenerate);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const apiVersion: Optional<string> = flags['api-version'] ?? (await getSourceApiVersion());
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const targetOrg = flags['target-org'] ?? (await Org.create({}));
-    const conn: Connection = targetOrg.getConnection(apiVersion);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const conn = targetOrg.getConnection(apiVersion) as unknown as Connection;
 
     // Build the options for the DictionaryGenerator
     const dictionaryBuilderOptions: DictionaryBuilderOptions = {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       includeManaged: flags['include-all-managed'] ?? false,
       conn,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       excludeManagedPrefixes: flags['exclude-managed-prefixes'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       includeManagedPrefixes: flags['include-managed-prefixes'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       sobjects: flags.sobjects,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       dir: flags.dir,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       startObject: flags['start-object'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       outputTime: flags['output-time'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       skipCharts: flags['skip-charts'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       includeStdObjects: flags['include-std-objects'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       skipEmptyObjects: flags['skip-empty-objects'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       excludeObjects: flags['exclude-objects'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       username: flags.username,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       batchSize: flags['process-batch-size'],
     };
 
