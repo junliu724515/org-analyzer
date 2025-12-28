@@ -18,59 +18,59 @@ export type DataDictionaryGenerateResult = {
 // Type assertion needed due to nested dependency type references
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 const commandFlags = {
-    'include-all-managed': Flags.boolean({
-      summary: messages.getMessage('flags.include-all-managed.summary'),
-      char: 'm',
-    }),
-    'api-version': Flags.orgApiVersion(),
-    'target-org': Flags.optionalOrg(),
-    'exclude-managed-prefixes': Flags.string({
-      summary: messages.getMessage('flags.exclude-managed-prefixes.summary'),
-      char: 'x',
-    }),
-    'include-managed-prefixes': Flags.string({
-      summary: messages.getMessage('flags.include-managed-prefixes.summary'),
-      char: 'l',
-    }),
-    sobjects: Flags.string({
-      summary: messages.getMessage('flags.sobjects.summary'),
-      char: 's',
-    }),
-    dir: Flags.directory({
-      summary: messages.getMessage('flags.dir.summary'),
-      char: 'd',
-    }),
-    'start-object': Flags.string({
-      summary: messages.getMessage('flags.start-object.summary'),
-    }),
-    'output-time': Flags.boolean({
-      summary: messages.getMessage('flags.output-time.summary'),
-    }),
-    'skip-charts': Flags.boolean({
-      summary: messages.getMessage('flags.skip-charts.summary'),
-    }),
-    'include-std-objects': Flags.string({
-      summary: messages.getMessage('flags.include-std-objects.summary'),
-    }),
-    verbose: Flags.boolean({
-      summary: messages.getMessage('flags.verbose.summary'),
-    }),
-    'skip-empty-objects': Flags.boolean({
-      summary: messages.getMessage('flags.skip-empty-objects.summary'),
-    }),
-    'exclude-objects': Flags.string({
-      summary: messages.getMessage('flags.exclude-objects.summary'),
-    }),
-    username: Flags.string({
-      summary: messages.getMessage('flags.username.summary'),
-    }),
-    'process-batch-size': Flags.integer({
-      summary: messages.getMessage('flags.process-batch-size.summary'),
-      min: 5,
-      max: 500,
-      default: 100,
-    }),
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  'include-all-managed': Flags.boolean({
+    summary: messages.getMessage('flags.include-all-managed.summary'),
+    char: 'm',
+  }),
+  'api-version': Flags.orgApiVersion(),
+  'target-org': Flags.optionalOrg(),
+  'exclude-managed-prefixes': Flags.string({
+    summary: messages.getMessage('flags.exclude-managed-prefixes.summary'),
+    char: 'x',
+  }),
+  'include-managed-prefixes': Flags.string({
+    summary: messages.getMessage('flags.include-managed-prefixes.summary'),
+    char: 'l',
+  }),
+  sobjects: Flags.string({
+    summary: messages.getMessage('flags.sobjects.summary'),
+    char: 's',
+  }),
+  dir: Flags.directory({
+    summary: messages.getMessage('flags.dir.summary'),
+    char: 'd',
+  }),
+  'start-object': Flags.string({
+    summary: messages.getMessage('flags.start-object.summary'),
+  }),
+  'output-time': Flags.boolean({
+    summary: messages.getMessage('flags.output-time.summary'),
+  }),
+  'skip-charts': Flags.boolean({
+    summary: messages.getMessage('flags.skip-charts.summary'),
+  }),
+  'include-std-objects': Flags.string({
+    summary: messages.getMessage('flags.include-std-objects.summary'),
+  }),
+  verbose: Flags.boolean({
+    summary: messages.getMessage('flags.verbose.summary'),
+  }),
+  'skip-empty-objects': Flags.boolean({
+    summary: messages.getMessage('flags.skip-empty-objects.summary'),
+  }),
+  'exclude-objects': Flags.string({
+    summary: messages.getMessage('flags.exclude-objects.summary'),
+  }),
+  username: Flags.string({
+    summary: messages.getMessage('flags.username.summary'),
+  }),
+  'process-batch-size': Flags.integer({
+    summary: messages.getMessage('flags.process-batch-size.summary'),
+    min: 5,
+    max: 500,
+    default: 100,
+  }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 /**
