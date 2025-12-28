@@ -76,8 +76,17 @@ describe('data-dictionary generate', () => {
     const files = fs.readdirSync('.');
     for (const file of files) {
       if (file.startsWith('DataDictionary-')) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        fs.rm(file, { recursive: true, force: true }, (err) => {});
+        const filePath = file;
+        const stats = fs.statSync(filePath);
+        if (stats.isDirectory()) {
+          // Remove the folder with name starting with DataDictionary- with all the files inside it
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          fs.rm(filePath, { recursive: true, force: true }, (err) => {
+            if (err) {
+              // Silently ignore cleanup errors
+            }
+          });
+        }
       }
     }
   });

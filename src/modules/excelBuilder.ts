@@ -824,9 +824,22 @@ export default class ExcelBuilder {
       }
 
       // Generate the output Excel file
-      const fileName = this.opts.conn.getUsername() + '-' + currentDateString + '.xlsx';
+      const connUsername = this.opts.conn.getUsername();
+      // Use projectName as fallback if username is empty, then 'DataDictionary' as final fallback
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      const filePrefix = connUsername || this.opts.projectName || 'DataDictionary';
+      const fileName = filePrefix + '-' + currentDateString + '.xlsx';
       const outputFile = path.join(dirpath, fileName);
-      wb.write(outputFile);
+      // Wait for the file to be written completely
+      await new Promise<void>((resolve, reject) => {
+        wb.write(outputFile, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
 
       // Return success result
       return {

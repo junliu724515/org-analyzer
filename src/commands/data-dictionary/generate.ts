@@ -14,6 +14,65 @@ export type DataDictionaryGenerateResult = {
   outputFolder?: string;
 };
 
+// Define flags separately to avoid type inference issues with nested dependencies
+// Type assertion needed due to nested dependency type references
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+const commandFlags = {
+  'include-all-managed': Flags.boolean({
+    summary: messages.getMessage('flags.include-all-managed.summary'),
+    char: 'm',
+  }),
+  'api-version': Flags.orgApiVersion(),
+  'target-org': Flags.optionalOrg(),
+  'exclude-managed-prefixes': Flags.string({
+    summary: messages.getMessage('flags.exclude-managed-prefixes.summary'),
+    char: 'x',
+  }),
+  'include-managed-prefixes': Flags.string({
+    summary: messages.getMessage('flags.include-managed-prefixes.summary'),
+    char: 'l',
+  }),
+  sobjects: Flags.string({
+    summary: messages.getMessage('flags.sobjects.summary'),
+    char: 's',
+  }),
+  dir: Flags.directory({
+    summary: messages.getMessage('flags.dir.summary'),
+    char: 'd',
+  }),
+  'start-object': Flags.string({
+    summary: messages.getMessage('flags.start-object.summary'),
+  }),
+  'output-time': Flags.boolean({
+    summary: messages.getMessage('flags.output-time.summary'),
+  }),
+  'skip-charts': Flags.boolean({
+    summary: messages.getMessage('flags.skip-charts.summary'),
+  }),
+  'include-std-objects': Flags.string({
+    summary: messages.getMessage('flags.include-std-objects.summary'),
+  }),
+  verbose: Flags.boolean({
+    summary: messages.getMessage('flags.verbose.summary'),
+  }),
+  'skip-empty-objects': Flags.boolean({
+    summary: messages.getMessage('flags.skip-empty-objects.summary'),
+  }),
+  'exclude-objects': Flags.string({
+    summary: messages.getMessage('flags.exclude-objects.summary'),
+  }),
+  username: Flags.string({
+    summary: messages.getMessage('flags.username.summary'),
+  }),
+  'process-batch-size': Flags.integer({
+    summary: messages.getMessage('flags.process-batch-size.summary'),
+    min: 5,
+    max: 500,
+    default: 100,
+  }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
+
 /**
  * Command to generate a data dictionary.
  */
@@ -24,60 +83,8 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
   public static readonly examples = messages.getMessages('examples');
 
   // Define the flags for the command
-  public static readonly flags = {
-    'include-all-managed': Flags.boolean({
-      summary: messages.getMessage('flags.include-all-managed.summary'),
-      char: 'm',
-    }),
-    'api-version': Flags.orgApiVersion(),
-    'target-org': Flags.optionalOrg(),
-    'exclude-managed-prefixes': Flags.string({
-      summary: messages.getMessage('flags.exclude-managed-prefixes.summary'),
-      char: 'x',
-    }),
-    'include-managed-prefixes': Flags.string({
-      summary: messages.getMessage('flags.include-managed-prefixes.summary'),
-      char: 'l',
-    }),
-    sobjects: Flags.string({
-      summary: messages.getMessage('flags.sobjects.summary'),
-      char: 's',
-    }),
-    dir: Flags.directory({
-      summary: messages.getMessage('flags.dir.summary'),
-      char: 'd',
-    }),
-    'start-object': Flags.string({
-      summary: messages.getMessage('flags.start-object.summary'),
-    }),
-    'output-time': Flags.boolean({
-      summary: messages.getMessage('flags.output-time.summary'),
-    }),
-    'skip-charts': Flags.boolean({
-      summary: messages.getMessage('flags.skip-charts.summary'),
-    }),
-    'include-std-objects': Flags.string({
-      summary: messages.getMessage('flags.include-std-objects.summary'),
-    }),
-    verbose: Flags.boolean({
-      summary: messages.getMessage('flags.verbose.summary'),
-    }),
-    'skip-empty-objects': Flags.boolean({
-      summary: messages.getMessage('flags.skip-empty-objects.summary'),
-    }),
-    'exclude-objects': Flags.string({
-      summary: messages.getMessage('flags.exclude-objects.summary'),
-    }),
-    username: Flags.string({
-      summary: messages.getMessage('flags.username.summary'),
-    }),
-    'process-batch-size': Flags.integer({
-      summary: messages.getMessage('flags.process-batch-size.summary'),
-      min: 5,
-      max: 500,
-      default: 100,
-    }),
-  };
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  public static readonly flags: typeof commandFlags = commandFlags;
 
   /**
    * Executes the command to generate a data dictionary.
@@ -87,25 +94,41 @@ export default class DataDictionaryGenerate extends SfCommand<DataDictionaryGene
   public async run(): Promise<DataDictionaryGenerateResult> {
     // Parse the flags provided by the user
     const { flags } = await this.parse(DataDictionaryGenerate);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const apiVersion: Optional<string> = flags['api-version'] ?? (await getSourceApiVersion());
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const targetOrg = flags['target-org'] ?? (await Org.create({}));
-    const conn: Connection = targetOrg.getConnection(apiVersion);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const conn = targetOrg.getConnection(apiVersion) as unknown as Connection;
 
     // Build the options for the DictionaryGenerator
     const dictionaryBuilderOptions: DictionaryBuilderOptions = {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       includeManaged: flags['include-all-managed'] ?? false,
       conn,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       excludeManagedPrefixes: flags['exclude-managed-prefixes'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       includeManagedPrefixes: flags['include-managed-prefixes'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       sobjects: flags.sobjects,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       dir: flags.dir,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       startObject: flags['start-object'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       outputTime: flags['output-time'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       skipCharts: flags['skip-charts'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       includeStdObjects: flags['include-std-objects'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       skipEmptyObjects: flags['skip-empty-objects'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       excludeObjects: flags['exclude-objects'],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       username: flags.username,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       batchSize: flags['process-batch-size'],
     };
 
