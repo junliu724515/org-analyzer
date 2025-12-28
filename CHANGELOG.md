@@ -1,3 +1,12 @@
+## [1.1.4](https://github.com/junliu724515/org-analyzer/compare/1.1.3...1.1.4) (2025-12-28)
+
+
+### Bug Fixes
+
+* enhance Excel file naming and ensure complete file writing ([6177a8a](https://github.com/junliu724515/org-analyzer/commit/6177a8a06cf7d71da202cffab3fe500d3934d41a))
+
+
+
 ## [1.1.3](https://github.com/junliu724515/org-analyzer/compare/1.1.2...1.1.3) (2024-09-17)
 
 
