@@ -3,7 +3,7 @@
   "description": "The org-analyzer plugin for the Salesforce CLI provides commands to analyze and report on various aspects of a Salesforce org, including generating data dictionaries, ERD charts, scanning object relationships, identifying metadata dependencies, checking admin permissions, and generating comprehensive org management reports",
   "version": "1.1.4",
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.10.10",
+    "@jsforce/jsforce-node": "^3.10.14",
     "@salesforce/core": "^ 8.24.0",
     "@salesforce/sf-plugins-core": "^12.2.6",
     "@salesforce/ts-types": "^2.0.12",
