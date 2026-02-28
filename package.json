@@ -4,7 +4,7 @@
   "version": "1.1.4",
   "dependencies": {
     "@jsforce/jsforce-node": "^3.10.10",
-    "@salesforce/core": "^ 8.24.0",
+    "@salesforce/core": "^ 8.26.3",
     "@salesforce/sf-plugins-core": "^12.2.6",
     "@salesforce/ts-types": "^2.0.12",
     "excel4node": "^1.8.2"
